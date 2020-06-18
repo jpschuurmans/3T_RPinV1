@@ -1,0 +1,2 @@
+BlockNumber,PositionInRun,PositionInBlock,TrialNumber,ConditionName,TrialDuration,NumberOfStimulusFrames,ImageFileName,MaskFileName,NoiseFrame,CatchTrial,Keypress,ResponseTime
+4,1,0,0,None,fix dur: 12000,load dur: 2895,None,None,None,None

@@ -4,6 +4,9 @@
 Created on Thu Feb 27 14:22:48 2020
 
 @author: jschuurmans
+
+creates sequence within blocks
+
 """
 import numpy as np 
 from math import ceil
@@ -46,10 +49,10 @@ for number in durCond:
 nFramesMask = round(maskDur/oneFrame)
 
 
-nFramesStimMask = nFramesCond[-1] + nFramesMask + 1 #plus one blank frame
-#nr of possible positions in the sequence
+nFramesStimMask = nFramesCond[-1] + nFramesMask + 6 #plus 6 blank frames (100ms at least)
+#nr of possible positions in the sequence 
 nPositions = round(nFramesBlock/nFramesStimMask)
-stimPosi = list(range(nPositions)) #30 possible positions in a block
+stimPosi = list(range(nPositions)) #24 possible positions in a block
 
 # every block has 20 stimuli, and there will be 11 unique blocks.
 totalPos = round(nStim*nUniBlocks)
@@ -58,41 +61,57 @@ posReps = ceil(totalPos/nPositions)
 allPosi = stimPosi*posReps
 
 # every stimulus has 11 different spots 
-#all 30 positions in a block should be equally filled over the 11 blocks
+#all 24 positions in a block should be equally filled over the 11 blocks
 #
-blockSeq = []
+theMean = (nPositions-1)/2
+DoIt = True
 
-for block in range(int(nUniBlocks)):
-    row = []
-    tmp = copy.deepcopy(allPosi)
-    for trial in range(nStim):
-        pick = np.random.choice(tmp)
-        if pick in row:
+while DoIt:
+    blockSeq = []
+    allPosi = stimPosi*posReps
+    for block in range(int(nUniBlocks)):
+        row = []
+        tmp = copy.deepcopy(allPosi)
+        for trial in range(nStim):
             pick = np.random.choice(tmp)
-        row.append(pick)
-        allPosi.remove(pick)
-
-        for elem in tmp:
-            if elem == pick:
-                tmp.remove(elem)
-
-    if block == 0:
-        blockSeq = row
-    else:
-        blockSeq = np.vstack([blockSeq, row])
-
-#blockSeq.shape[1]
-#check = np.matrix(blockSeq)
-#check.mean()
-means = []
-for bla in range(blockSeq.shape[1]):
-    x= np.mean(blockSeq[:,bla])
-    means.append(x)
+            if pick in row:
+                pick = np.random.choice(tmp)
+            row.append(pick)
+            allPosi.remove(pick)
     
-#1 trial contains 1 stim, 1 mask, 2 noiseframes. 1 block contains 20 trials.
-# so for 1 block there must be 80 screens loaded
+            for elem in tmp:
+                if elem == pick:
+                    tmp.remove(elem)
+    
+        if block == 0:
+            blockSeq = row
+        else:
+            blockSeq = np.vstack([blockSeq, row])
+    
+    #blockSeq.shape[1]
+    #check = np.matrix(blockSeq)
+    #check.mean()
+    means = []
+    for bla in range(blockSeq.shape[1]):
+        x= np.mean(blockSeq[:,bla])
+        means.append(x)
+    
 
-logLocation = '/home/jschuurmans/Documents/02_recurrentSF_3T/recurrentSF_3T_CodeRepo/sequence_exp.txt'
+    checkMean = np.mean(means)
+    checkSTD = np.std(means)
+    checkMin = checkMean - np.amin(means)
+    checkMax = np.amax(means) - checkMean
+    if checkMin > 2.5 or checkMax > 2.5 or checkMean > (theMean + 0.2) or checkMean < (theMean - 0.2):
+        print('min: ' + str(checkMin) + ' ...... max: ' + str(checkMax))
+        DoIt = True
+        
+    else:
+        DoIt = False
+
+
+
+logLocation = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\recurrentSF_3T_CodeRepo\\mainExpCode\\sequence_exp.txt'
+
 np.savetxt(logLocation,blockSeq.astype(int),fmt='%i',delimiter=',')
 
 logfile = open(logLocation, 'w')
