@@ -1,3 +1,9 @@
 /exampleCodes/__pycache__/
 /exampleCodes/TestData/
 /exampleCodes/TestImages/
+
+/locExpCode/stimuli/
+/locExpCode/data/
+
+/mainExpCode/stimuli/
+/mainExpCode/data/
