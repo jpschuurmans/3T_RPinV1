@@ -24,7 +24,7 @@ import copy
 import math
 
 #%% =============================================================================
-screen_size = (1366,768) #http://whatismyscreenresolution.net/
+screen_size = (1920,1080) #http://whatismyscreenresolution.net/
 
 
 # a block contains 20 unique images + their mask
@@ -51,7 +51,7 @@ colourChange = (0.8, 1.0, 1.0) #(0, 1.0, 1.0) = too red
 #paths
 baseFolder = ''
 #commented out, this is just for testing in Spyder
-baseFolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\MainExp_ToTest\\'
+#baseFolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\MainExp_ToTest\\'
 
 dataPath = baseFolder + 'data'
 stimPath = baseFolder + 'stimuli'
@@ -75,9 +75,9 @@ expName = 'Recurrent face processing in V1'
 expInfo = {
         '1. Participant ID': '',
         '2. Run number': ('01','02','03','04','05','06','07','08','09','10','11'),
-        '3. Screen hight in px': '768',
-        '4. Screen width in px': '1366',
-        '5. Screen hight in cm': '17',
+        '3. Screen hight in px': '1080',
+        '4. Screen width in px': '1920',
+        '5. Screen hight in cm': '27',
         '6. distance to screen': '60'
         }
 
@@ -108,7 +108,7 @@ d = int(expInfo['6. distance to screen']) # Distance between monitor and partici
 
 logfile = open(dataFname, 'w')
 logfile.write('screensize is ' + str(scrsize) + 'px and distance to screen is ' +str(d)+ 'cm\n')
-logfile.write('BlockNumber,PositionInRun,PositionInBlock,TrialNumber,ConditionName,TrialStart,TrialDuration,NumberOfStimulusFrames,ImageFileName,MaskFileName,NoiseFrame,CatchTrial,Keypress,ResponseStamp,ResponseTime\n')
+logfile.write('BlockNumber,PositionInRun,PositionInBlock,TrialNumber,ConditionName,TrialStart,TrialDuration,StimDuration,MaskDuration,NumberOfStimulusFrames,ImageFileName,MaskFileName,NoiseFrame,CatchTrial,Keypress,ResponseStamp,ResponseTime\n')
 #logfile.write('Trial_Number, Stimulus, StimCode, StimOnset, StimOffset, Response, 
 #       ResponseTime \n') 
 
@@ -137,6 +137,7 @@ if runNr == 1: #make new block/stim/noise sequences for first run
     checkerboard = np.kron([[255, 0] * n_checks, [0, 255] * n_checks] * n_checks, np.ones((check_size, check_size)))
     checkerboard = np.delete(np.delete(checkerboard,np.s_[550:],0),np.s_[550:],1)
     masks  = glob.glob(os.path.join(baseFolder + '*.bmp'))
+    masks.sort()
 
     for maskim in masks:
         checkycheck = copy.deepcopy(checkerboard)
@@ -145,7 +146,7 @@ if runNr == 1: #make new block/stim/noise sequences for first run
         checkerOri = checkycheck.astype(np.uint8)
         checkerOri = Image.fromarray(checkerOri)
         #checkerOri.show()
-        toSave = dataPath + '\\checkerOri_'+ maskim[-8:]
+        toSave = os.path.join(dataPath, 'checkerOri_'+ maskim[-8:])
         checkerOri.save(toSave)
         del checkerOri
         checkycheck = copy.deepcopy(checkerboard)
@@ -153,7 +154,7 @@ if runNr == 1: #make new block/stim/noise sequences for first run
         checkycheck[themask] = 127.5
         checkerInv = checkycheck.astype(np.uint8)
         checkerInv = Image.fromarray(checkerInv)
-        toSave = dataPath + '\\checkerInv_'+ maskim[-8:]
+        toSave = os.path.join(dataPath, 'checkerInv_'+ maskim[-8:])
         checkerInv.save(toSave)
         del checkerInv
     
@@ -243,11 +244,14 @@ for times in range(nUniBlocks):
         name = 'nf' + str(times+1)
     
     stimSpecNoise = glob.glob(os.path.join(stimPath, name + '*Stim*.bmp'))
+    stimSpecNoise.sort()
     maskSpecNoise = glob.glob(os.path.join(stimPath, name + '*Mask*.bmp'))
+    maskSpecNoise.sort()
     faceNames.append(stimSpecNoise)
     maskNames.append(maskSpecNoise)
 
 noiseNames = glob.glob(os.path.join(noisePath, '*.bmp'))
+noiseNames.sort()
 
 #condition/block numbers, to make it more clear:
 #			50		83.3	100	    150
@@ -344,8 +348,8 @@ trialsReady = data.TrialHandler(allTrialsOrder, nReps=1, method='sequential',
 #%% =============================================================================
 #loading the checkerboards for the last part of the run
 checkerboards = []
-checkerboards.append(glob.glob(os.path.join(dataPath + '\\*Back.bmp')))
-checkerboards.append(glob.glob(os.path.join(dataPath + '\\*Face.bmp')))
+checkerboards.append(glob.glob(os.path.join(dataPath, '*Back.bmp')))
+checkerboards.append(glob.glob(os.path.join(dataPath, '*Face.bmp')))
 checkerboards[[1][0]][1]
 
 #%% =============================================================================
@@ -457,16 +461,17 @@ for trial in trialsReady:
             while x==1: 
                 fixNow = clock.getTime()
                 timeFix = fixNow-fixStart
-                if timeFix > (fixStEn): # time to fixate more then 7 seconds? end
+                if timeFix > (fixStEn-1): # time to fixate more then 11 seconds? end
                     x=2
         else:
             while x==1: 
                 fixNow = clock.getTime()   
                 timeFix = fixNow-fixStart
-                if timeFix > 10: # time to fixate more then 5 seconds? end
+                if timeFix > 9: # time to fixate more then 9 seconds? end
                     x=2
-                    
-        toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(int(timeFix)*1000) + ',load dur: ' + str(int(loadTime*1000)) + ',None,None,None,None,None,None,None\n'
+        for nFrames in range(60):  #last second of fixation start flipping, to prevent frame drops later on
+            win.flip()            
+        toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(int((timeFix)*1000)+1) + ',load dur: ' + str(int(loadTime*1000)) + ',None,None,None,None,None,None,None,None,None\n'
         logfile.write(toSave)
         print('fixation, dur: ' + str(int(timeFix)*1000) + ',load dur: ' + str(int(loadTime*1000)))        
     startTrial = clock.getTime()
@@ -487,9 +492,13 @@ for trial in trialsReady:
     for nFrames in range(fr1[trial['posInBlock']-1]):
         stim1[trial['posInBlock']-1].draw()
         win.flip()
+    afterStim = clock.getTime()
+    stimDur = afterStim - startTrial
     for nFrames in range(fr2):
         stim2[trial['posInBlock']-1].draw() 
-        win.flip()        
+        win.flip()
+    afterMask = clock.getTime()
+    maskDur = afterMask - afterStim
     for nFrames in range(fr3[trial['posInBlock']-1]):
         stim3[trial['posInBlock']-1].draw()
         win.flip()
@@ -503,7 +512,7 @@ for trial in trialsReady:
     trialDuration = int((endTrial-startTrial)*1000)
     print('block:', int(trial['blockNr']),', trial', int(trialCount),
           ', trial time: ', int((endTrial-startTrial)*1000), 'ms')
-    toSave = str(trial['blockNr'])+','+str(trial['posInRun'])+','+str(trial['posInBlock'])+','+str(trial['trialNr']) +','+ str(trial['condName']) +','+ str(startTrial)+','+ str(trialDuration) +','+ str(trial['stimFrames']) +','+ str(trial['imageName']) +','+ str(trial['maskName']) +','+ str(trial['noiseFrame'])+','+ str(int(trial['catchTrial']))+','+str(last_response)+','+str(response_time)+','+str(reactionTime)+'\n' 
+    toSave = str(trial['blockNr'])+','+str(trial['posInRun'])+','+str(trial['posInBlock'])+','+str(trial['trialNr']) +','+ str(trial['condName']) +','+ str(startTrial)+','+ str(trialDuration) +','+ str(int(stimDur*1000)) +','+ str(int(maskDur*1000)) +','+ str(trial['stimFrames']) +','+ str(trial['imageName']) +','+ str(trial['maskName']) +','+ str(trial['noiseFrame'])+','+ str(int(trial['catchTrial']))+','+str(last_response)+','+str(response_time)+','+str(reactionTime)+'\n' 
     logfile.write(toSave)
     if not last_response == '': #empry responses if it's already logged
         esc() # in case we need to shut down the expt
@@ -515,11 +524,11 @@ if ok == 0:
     
 #one more normal fixation
 fixStart = clock.getTime()
-for nFrames in range(60): 
+for nFrames in range(600): # 600 = 10 seconds
     win.flip()
 fixNow = clock.getTime()
 timeFix = fixNow-fixStart 
-toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(int(timeFix)*1000) + ',None,None,None,None,None,None,None,None\n'
+toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(int(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
 logfile.write(toSave)
 
 #final face chackerboard, then background checkerboard    
@@ -545,7 +554,7 @@ for checks in range(2): #checks=1 is face checks=0 is background
     else:
         checkName = 'back checkers'
        
-    toSave = checkName + ',3Hz aka 6Hz,0,0,'+ 'checkerboard,checker start: '+str(checkerTimeStart)+',checker dur: '+ str(int(checkerTimeTotal)*1000) + ',None,None,None,None,None,None,None,None\n'
+    toSave = checkName + ',3Hz aka 6Hz,0,0,'+ 'checkerboard,checker start: '+str(checkerTimeStart)+',checker dur: '+ str(int(checkerTimeTotal)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
     logfile.write(toSave)
 
 
@@ -555,7 +564,7 @@ for nFrames in range(60*fixStEn): # 12 sec --> end fixation*refreshrate
     win.flip()
 fixNow = clock.getTime()
 timeFix = fixNow-fixStart 
-toSave = 'EndFixatione,final,0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(int(timeFix)*1000) + ',None,None,None,None,None,None,None,None\n'
+toSave = 'EndFixatione,final,0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(int(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
 logfile.write(toSave)
     
 fix1.setAutoDraw(False)
