@@ -7,6 +7,7 @@ For everything to work properly:
 - to end (break the loop) press Ctrl+C -> your data will be saved anyway 
 - you can also press "esc" in stead of a "normal" trial response
 
+- make sure stimuli are in "/stimuli" and noise frames in "/noiseFrames" (git will ignore)
 
 
 Causion: Extremely boring :D

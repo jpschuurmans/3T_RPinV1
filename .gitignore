@@ -4,7 +4,9 @@
 
 /locExpCode/stimuli/
 /locExpCode/data/
+/locExpCode/__pycache__
 
 /mainExpCode/stimuli/
 /mainExpCode/noiseFrames/
 /mainExpCode/data/
+
