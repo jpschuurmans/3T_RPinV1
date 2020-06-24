@@ -402,7 +402,7 @@ esc() # in case we need to shut down the expt
 # =============================================================================
 trialCount = 1
 fr2 = 10
-totalFr = 25 #total nr of trialframes is 25
+totalFr = 25 #total nr of trialframes is 25 = 416ms
 trNum = 0
 corrResp = 0; totalCatch = 0; ok = 2 #all necessary for the task
 #draw fixation cross
@@ -471,9 +471,9 @@ for trial in trialsReady:
                     x=2
         for nFrames in range(60):  #last second of fixation start flipping, to prevent frame drops later on
             win.flip()            
-        toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(int((timeFix)*1000)+1) + ',load dur: ' + str(int(loadTime*1000)) + ',None,None,None,None,None,None,None,None,None\n'
+        toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ',None,None,None,None,None,None,None,None,None\n'
         logfile.write(toSave)
-        print('fixation, dur: ' + str(int(timeFix)*1000) + ',load dur: ' + str(int(loadTime*1000)))        
+        print('fixation, dur: ' + str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ' ms')       
     startTrial = clock.getTime()
     response = event.getKeys(timeStamped=clock) #check for responses to target
     esc()
@@ -509,10 +509,10 @@ for trial in trialsReady:
         reactionTime = (response_time - catchStart)*1000
         print('CLICK!! The reactiontime is ', reactionTime, 'ms' )
     endTrial = clock.getTime()
-    trialDuration = int((endTrial-startTrial)*1000)
+    trialDuration = round((endTrial-startTrial)*1000)
     print('block:', int(trial['blockNr']),', trial', int(trialCount),
-          ', trial time: ', int((endTrial-startTrial)*1000), 'ms')
-    toSave = str(trial['blockNr'])+','+str(trial['posInRun'])+','+str(trial['posInBlock'])+','+str(trial['trialNr']) +','+ str(trial['condName']) +','+ str(startTrial)+','+ str(trialDuration) +','+ str(int(stimDur*1000)) +','+ str(int(maskDur*1000)) +','+ str(trial['stimFrames']) +','+ str(trial['imageName']) +','+ str(trial['maskName']) +','+ str(trial['noiseFrame'])+','+ str(int(trial['catchTrial']))+','+str(last_response)+','+str(response_time)+','+str(reactionTime)+'\n' 
+          ', trial time: ', round((endTrial-startTrial)*1000), 'ms')
+    toSave = str(trial['blockNr'])+','+str(trial['posInRun'])+','+str(trial['posInBlock'])+','+str(trial['trialNr']) +','+ str(trial['condName']) +','+ str(startTrial)+','+ str(trialDuration) +','+ str(round(stimDur*1000)) +','+ str(round(maskDur*1000)) +','+ str(trial['stimFrames']) +','+ str(trial['imageName']) +','+ str(trial['maskName']) +','+ str(trial['noiseFrame'])+','+ str(int(trial['catchTrial']))+','+str(last_response)+','+str(response_time)+','+str(reactionTime)+'\n' 
     logfile.write(toSave)
     if not last_response == '': #empry responses if it's already logged
         esc() # in case we need to shut down the expt
@@ -528,7 +528,7 @@ for nFrames in range(600): # 600 = 10 seconds
     win.flip()
 fixNow = clock.getTime()
 timeFix = fixNow-fixStart 
-toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(int(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
+toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(round(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
 logfile.write(toSave)
 
 #final face chackerboard, then background checkerboard    
@@ -554,7 +554,7 @@ for checks in range(2): #checks=1 is face checks=0 is background
     else:
         checkName = 'back checkers'
        
-    toSave = checkName + ',3Hz aka 6Hz,0,0,'+ 'checkerboard,checker start: '+str(checkerTimeStart)+',checker dur: '+ str(int(checkerTimeTotal)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
+    toSave = checkName + ',3Hz aka 6Hz,0,0,'+ 'checkerboard,checker start: '+str(checkerTimeStart)+',checker dur: '+ str(round(checkerTimeTotal)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
     logfile.write(toSave)
 
 
@@ -564,7 +564,7 @@ for nFrames in range(60*fixStEn): # 12 sec --> end fixation*refreshrate
     win.flip()
 fixNow = clock.getTime()
 timeFix = fixNow-fixStart 
-toSave = 'EndFixatione,final,0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(int(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
+toSave = 'EndFixatione,final,0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(round(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
 logfile.write(toSave)
     
 fix1.setAutoDraw(False)
@@ -576,7 +576,7 @@ percCorr = (100/totalCatch)*corrResp
 toSave = 'Total run duration: ' + str(totExpDur) + '\nPercentage correct = ' + str(percCorr)
 logfile.write(toSave)
 
-instruc03 = 'This is the end of run ' + str(expInfo['2. Run number']) + ' out of 11\n\nYou have a score of ' + str(int(percCorr)) + '%\nThank you for paying attention :)\n\nPress \'x\' to close the screen.'
+instruc03 = 'This is the end of run ' + str(expInfo['2. Run number']) + ' out of 11\n\nYou have a score of ' + str(round(percCorr)) + '%\nThank you for paying attention :)\n\nPress \'x\' to close the screen.'
 instruc03 = visual.TextStim(win, color='black',height=32,text=instruc03)
 instruc03.draw()
 win.flip()
