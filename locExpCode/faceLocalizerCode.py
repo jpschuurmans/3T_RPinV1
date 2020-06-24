@@ -39,14 +39,12 @@ colourChange = (1.0, 1.0, 0.8)
 
 #%% =============================================================================
 # paths
-#stimPath = 'stimuli'
-#dataPath = 'data' # Where to write away the log file
-
+basefolder = '' 
 #commented out, this is just for testing in Spyder
-stimPath = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\LocExp_ToTest\\stimuli'
-dataPath = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\LocExp_ToTest\\data'
+#basefolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\LocExp_ToTest\\' 
 
-
+stimPath = basefolder + 'stimuli'
+dataPath = basefolder + 'data'
 
 #%% =============================================================================
 # in case we need to shut down the expt
@@ -357,10 +355,12 @@ logfile.write(toSave)
 fix1.setAutoDraw(False)
 fix2.setAutoDraw(False)
 win.mouseVisible = True
+endExperiment = clock.getTime()
+totalTimeExp = endExperiment - expt_time_elapsed
 
 maxCat = (len(allTrialsOrder)/trPerBlock)*2
 endScore = (100/maxCat)*maxCat
-toSave = str(endScore) + 'percent of colour changes detected'
+toSave = str(endScore) + 'percent of colour changes detected\nTotal experiment time: ' + str(round(totalTimeExp)) + ' minutes'
 logfile.write(toSave)
 
 
