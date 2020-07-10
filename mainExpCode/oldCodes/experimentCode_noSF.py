@@ -24,21 +24,19 @@ import copy
 import math
 
 #%% =============================================================================
+screen_size = (1920,1080) #http://whatismyscreenresolution.net/
+
 
 # a block contains 20 unique images + their mask
-monRR = 60 # refresh rate on monitor is 60Hz
-frame = 1000/monRR # one 
-durCond = [3, 5, 6, 9] #50, 83.33, 100, 150 ms
-durCondNames = [str(int(durCond[0]*frame)),str(int(durCond[1]*frame)),str(int(durCond[2]*frame)),str(int(durCond[3]*frame))]
+durCond = [50, 83.33, 100, 150] #
 typCond = ['Int', 'Neg', 'Scr']
-sfType = ['LSF', 'HSF']
-nCond = len(durCond)*len(typCond)*len(sfType) #nr of conditions = 12
+nCond = len(durCond)*len(typCond) #nr of conditions = 12
 
-nBlockPerCond = 20 #nr of blocks per condition (in total)
+nBlockPerCond = 22 #nr of blocks per condition (in total)
 nUniBlocks = int(nBlockPerCond/2) #nr of unique blocks per condition = 11 (11 sequences to make)
 nBlocks = nCond*nBlockPerCond # 264 blocks in total
 
-nRuns = 20 # runs for whole exp
+nRuns = 11 # runs for whole exp
 nBlocksRun = nBlocks/nRuns # so... 24 blocks per run --> PICKLE IT :)
 
 durBlock = 10 # seconds
@@ -79,9 +77,8 @@ expInfo = {
         '2. Run number': ('01','02','03','04','05','06','07','08','09','10','11'),
         '3. Screen hight in px': '1080',
         '4. Screen width in px': '1920',
-        '5. Screen hight in cm': '33',
-        '6. distance to screen': '60',
-        '7. Size of the stimulus in vis degrees': '9'
+        '5. Screen hight in cm': '27',
+        '6. distance to screen': '60'
         }
 
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
@@ -103,13 +100,11 @@ if not os.path.isdir(dataPath):
 dataName = expInfo['1. Participant ID'] + '_run' + expInfo['2. Run number'] + '_' + expInfo['date'] + '.csv'
 dataFname = os.path.join(dataPath, dataName)
 
-#http://whatismyscreenresolution.net/
 scrsize = (int(expInfo['4. Screen width in px']),int(expInfo['3. Screen hight in px']))
 r = scrsize[1] # Vertical resolution of the monitor
 h = int(expInfo['5. Screen hight in cm']) # Monitor height in cm
 d = int(expInfo['6. distance to screen']) # Distance between monitor and participant in cm
 
-degreesStim = int(expInfo['7. Size of the stimulus in vis degrees'])
 
 logfile = open(dataFname, 'w')
 logfile.write('screensize is ' + str(scrsize) + 'px and distance to screen is ' +str(d)+ 'cm\n')
@@ -117,13 +112,6 @@ logfile.write('BlockNumber,PositionInRun,PositionInBlock,TrialNumber,ConditionNa
 #logfile.write('Trial_Number, Stimulus, StimCode, StimOnset, StimOffset, Response, 
 #       ResponseTime \n') 
 
-pxlDensY = r/(h*10)
-mmPerDeg = math.atan(1)/45 * (d*10)  # number of pixels per degree
-mmPerStim = mmPerDeg*degreesStim# how big stim should be in mm
-stimSize = mmPerStim*pxlDensY # nr of pixels the face should be
-#HIGHT since the face itself is 400 out of 550 pixels.. stim size should be magnified by 1.375
-#WIDTH since the face itself is 364 out of 550 pixels.. stim size should be magnified by ~1.511
-stimSize = stimSize*1.375
 
 #%% =============================================================================
 #make or load block order for participant
@@ -308,17 +296,17 @@ for blockNr in runSeq: #loop through blocks in specific run
         condiName = None
         #if there is a trial for the specific position, give it correct timing info
         if any(map((lambda value: value == blockNr), (0,1,2))):
-            stimFr = durCond[0]
-            duration = durCondNames[0] +'ms'
+            stimFr = 3
+            duration = '50ms'
         elif any(map((lambda value: value == blockNr), (3,4,5))):
-            stimFr = durCond[1]
-            duration = durCondNames[1] +'ms'
+            stimFr = 5
+            duration = '83.33ms'
         elif any(map((lambda value: value == blockNr), (6,7,8))):
-            stimFr = durCond[2]
-            duration = durCondNames[2] +'ms'
+            stimFr = 6
+            duration = '100ms'
         else:
-            stimFr = durCond[3]
-            duration = durCondNames[3] +'ms'
+            stimFr = 9
+            duration = '150ms'
         if any(map((lambda value: value == blockNr), (0,3,6,9))): #intact stim
             trType = 0
         elif any(map((lambda value: value == blockNr), (1,4,7,10))): #neg stim
@@ -381,9 +369,9 @@ instruc02 = 'The experiment is about to start!\n\n Waiting for the scanner trigg
 instruc02 = visual.TextStim(win, color='black',height=32,text=instruc02)
 
 #create fixation cross
-fix1=visual.Line(win,start=(-stimSize,-stimSize),end=(stimSize, stimSize),
+fix1=visual.Line(win,start=(-500,-500),end=(500, 500),
                  pos=(0.0, 0.0),lineWidth=1.0,lineColor='black',units='pix')
-fix2=visual.Line(win,start=(-stimSize,stimSize),end=(stimSize, -stimSize),
+fix2=visual.Line(win,start=(-500,500),end=(500, -500),
                  pos=(0.0, 0.0),lineWidth=1.0,lineColor='black',units='pix')
 
 
@@ -441,11 +429,11 @@ for trial in trialsReady:
                 else:
                     col = (1.0, 1.0, 1.0)
                 im1 = Image.open(os.path.join(noisePath, allTrialsOrder[trNum]['noiseFrame']))
-                stim1.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im1,color=col))
+                stim1.append(visual.ImageStim(win, size=[500,500],image=im1,color=col))
                 im2 = Image.open(os.path.join(noisePath, allTrialsOrder[trNum]['noiseFrame']))
-                stim2.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im2,color=col))
+                stim2.append(visual.ImageStim(win, size=[500,500],image=im2,color=col))
                 im3 = Image.open(os.path.join(noisePath, allTrialsOrder[trNum]['noiseFrame']))
-                stim3.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im3,color=col))
+                stim3.append(visual.ImageStim(win, size=[500,500],image=im3,color=col))
                 fr1.append(fr2)
                 fr3.append((totalFr - fr2)-fr2)
             else:
@@ -454,11 +442,11 @@ for trial in trialsReady:
                 else:
                     col = (1.0, 1.0, 1.0)
                 im1 = Image.open(os.path.join(stimPath, allTrialsOrder[trNum]['imageName']))
-                stim1.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im1,color=col))
+                stim1.append(visual.ImageStim(win, size=[500,500],image=im1,color=col))
                 im2 = Image.open(os.path.join(stimPath, allTrialsOrder[trNum]['maskName']))
-                stim2.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im2,color=col))
+                stim2.append(visual.ImageStim(win, size=[500,500],image=im2,color=col))
                 im3 = Image.open(os.path.join(noisePath, allTrialsOrder[trNum]['noiseFrame']))
-                stim3.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im3,color=col))
+                stim3.append(visual.ImageStim(win, size=[500,500],image=im3,color=col))
 
                 fr1.append(allTrialsOrder[trNum]['stimFrames'])
                 fr3.append((totalFr - fr2) - allTrialsOrder[trNum]['stimFrames'])
@@ -546,8 +534,8 @@ logfile.write(toSave)
 #final face chackerboard, then background checkerboard    
 for checks in range(2): #checks=1 is face checks=0 is background
     #per part, 10 seconds. 1 cicle (ori+inv) will show 4 times per sec. 
-    checkerOri = visual.ImageStim(win=win,size=[stimSize,stimSize], image=Image.open(checkerboards[[checks][0]][1]))
-    checkerInv = visual.ImageStim(win=win,size=[stimSize,stimSize], image=Image.open(checkerboards[[checks][0]][0]))
+    checkerOri = visual.ImageStim(win=win,size=[500,500], image=Image.open(checkerboards[[checks][0]][1]))
+    checkerInv = visual.ImageStim(win=win,size=[500,500], image=Image.open(checkerboards[[checks][0]][0]))
     checkerTimeStart= clock.getTime()
     for times in range(30):
         for nFrames in range(10): #6 frames = 100ms each -> 5Hz(or10)
@@ -572,7 +560,7 @@ for checks in range(2): #checks=1 is face checks=0 is background
 
 #finalfixationnnn
 fixStart = clock.getTime()
-for nFrames in range(monRR*fixStEn): # 12 sec --> end fixation*refreshrate
+for nFrames in range(60*fixStEn): # 12 sec --> end fixation*refreshrate
     win.flip()
 fixNow = clock.getTime()
 timeFix = fixNow-fixStart 

@@ -47,6 +47,26 @@ pix = s(ind).PixelList;
 MaskBack = logical(full(sparse(pix(:,2), pix(:,1), 1, size(blobFinding,1), size(blobFinding,2))));
 %imshow(MaskBack)
 
+
+% to calculate the nr of pixels of the face (with/hight)
+relative = sum(MaskBack,1);
+x = 1;
+y=0;
+start = 0;
+for time = 1:length(relative)
+    if relative(x) ~= relative(1) && y == 0
+        start = x;
+        y = y +1;
+        x = x + 1;
+    elseif relative(x) ~= relative(1)
+        y = y +1;
+        x = x + 1;
+    else        
+        x = x + 1;
+    end
+end
+done = start+y;
+
 signalcontrast = 0.5;
 LC = [0.45 0.1]; % desired luminance and contrast
 shiiBlend = cell(theim,length(nim));
