@@ -35,7 +35,7 @@ sfType = ['LSF', 'HSF']
 nCond = len(durCond)*len(typCond)*len(sfType) #nr of conditions = 12
 
 nBlockPerCond = 20 #nr of blocks per condition (in total)
-nUniBlocks = int(nBlockPerCond/2) #nr of unique blocks per condition = 11 (11 sequences to make)
+nUniBlocks = int(nBlockPerCond/2) #nr of unique blocks per condition = 10 (10 sequences to make)
 nBlocks = nCond*nBlockPerCond # 264 blocks in total
 
 nRuns = 20 # runs for whole exp
@@ -53,7 +53,7 @@ colourChange = (0.8, 1.0, 1.0) #(0, 1.0, 1.0) = too red
 #paths
 baseFolder = ''
 #commented out, this is just for testing in Spyder
-#baseFolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\MainExp_ToTest\\'
+baseFolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\recurrentSF_3T_CodeRepo\\mainExpCode\\'
 
 dataPath = baseFolder + 'data'
 stimPath = baseFolder + 'stimuli'
@@ -79,8 +79,8 @@ expInfo = {
         '2. Run number': ('01','02','03','04','05','06','07','08','09','10','11'),
         '3. Screen hight in px': '1080',
         '4. Screen width in px': '1920',
-        '5. Screen hight in cm': '33',
-        '6. distance to screen': '60',
+        '5. Screen hight in cm': '39',
+        '6. distance to screen': '134',
         '7. Size of the stimulus in vis degrees': '9'
         }
 
@@ -119,7 +119,7 @@ logfile.write('BlockNumber,PositionInRun,PositionInBlock,TrialNumber,ConditionNa
 
 pxlDensY = r/(h*10)
 mmPerDeg = math.atan(1)/45 * (d*10)  # number of pixels per degree
-mmPerStim = mmPerDeg*degreesStim# how big stim should be in mm
+mmPerStim = mmPerDeg*degreesStim # how big stim should be in mm
 stimSize = mmPerStim*pxlDensY # nr of pixels the face should be
 #HIGHT since the face itself is 400 out of 550 pixels.. stim size should be magnified by 1.375
 #WIDTH since the face itself is 364 out of 550 pixels.. stim size should be magnified by ~1.511
@@ -138,13 +138,13 @@ runNr = int(expInfo['2. Run number'])
 if runNr == 1: #make new block/stim/noise sequences for first run
    
     #make checkerboard face/background and their inverts
-    size_in_deg = 0.6 # The stimulus size in pixels
+    size_in_deg = 0.6 # The checker size in degrees
     # Calculate the number of degrees that correspond to a single pixel. This will
     # generally be a very small value, something like 0.03.
     deg_per_px = math.degrees(math.atan2(.5*h, d)) / (.5*r)
     print(str(deg_per_px) + 's degrees correspond to a single pixel')
     # Calculate the size of the stimulus in degrees
-    check_size = int(size_in_deg / deg_per_px) #The size of the stimulus in pixels
+    check_size = int(size_in_deg / deg_per_px) #The size of the checkers in pixels
     n_checks = math.ceil((550/check_size)/2)
     checkerboard = np.kron([[255, 0] * n_checks, [0, 255] * n_checks] * n_checks, np.ones((check_size, check_size)))
     checkerboard = np.delete(np.delete(checkerboard,np.s_[550:],0),np.s_[550:],1)
@@ -177,37 +177,37 @@ if runNr == 1: #make new block/stim/noise sequences for first run
     cond = (list(range(nCond)))
     posCombi = np.zeros((nCond,nCond))
     step = nCond-1
-    y=0
-    for run in range(nRuns):
+    for run in range(nRuns):# 20 times
         print('Making block sequence for run: ' + str(run))
-        for num in range(int(nBlockPerCond/nUniBlocks)):
-            rnd.shuffle(cond)
-            restart = True
-            while restart:
-                temPosCombi = copy.deepcopy(posCombi)
-                for time in range(step):
-                    num1 = cond[time]
-                    num2 = cond[time+1]
-                    if num1 == num2 or temPosCombi[num1,num2] == 3:
-                        rnd.shuffle(cond)
-                        temPosCombi = copy.deepcopy(posCombi)
-                        break
-                    elif time == 10:
-                        if y == 0:
-                            toAdd = copy.deepcopy(cond)
-                            y=1
-                        else:
-                            toAdd.extend(cond)
-                            blockSeq.append(toAdd)
-                            y=0
-                        restart = False
+        rnd.shuffle(cond) #shuffle the conditions
+        restart = True
+        while restart:
+            temPosCombi = copy.deepcopy(posCombi) #copy the pos positions
+            for time in range(step): #for all the possible steps in conditions
+                num1 = cond[time]#take a number from the condition list
+                num2 = cond[time+1]#take a second number from cond list
+                print('time: ' +str(time)+ ', numbers: '+str(num1) + 'and'+ str(num2))
+                
+                if num1 == num2 or temPosCombi[num1,num2] == 2: #if numbers are the same or following each other
+                    print('booop! Same num: ' + str(num1 == num2) +', bouble step: '+ str(temPosCombi[num1,num2] == 2))
+                    rnd.shuffle(cond) #shuffle the condition list again
+                    temPosCombi = copy.deepcopy(posCombi) #reset the possible conditions
+                    break #get out of this loop
+                elif time == 22:
+                    print('check: is it time 22?')
+                    toAdd = copy.deepcopy(cond)
+                    blockSeq.append(toAdd)
+                    restart = False
                     temPosCombi[num1,num2] += 1
-                posCombi = copy.deepcopy(temPosCombi)               
+
+                    
+            posCombi = copy.deepcopy(temPosCombi)    
+    print('done: ' +str(blockSeq))
 
     with open(logLocationBlockSeq, 'wb') as fp:
         pickle.dump(blockSeq, fp)
     
-    #22 blocks per condition (11 unique ones times 2)
+    #20 blocks per condition (10 unique ones times 2)
     #sequence for noise background:
     noiseSeq = []
     noiseList = (list(range(nUniBlocks)))*2
@@ -218,8 +218,8 @@ if runNr == 1: #make new block/stim/noise sequences for first run
         noiseSeq.append(toAdd)
         k +=1
     
-    blockCount = list(np.zeros(nCond)) #there are 12 conditions.
-    # one condition can be shown 22 timesthroughout the whole experiment    
+    blockCount = list(np.zeros(nCond)) #there are 24 conditions.
+    # one condition can be shown 20 timesthroughout the whole experiment    
 
     # blockSeq is the order of blocks within a run..
     #stimSeq is the order of stimuli within each block
