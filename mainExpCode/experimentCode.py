@@ -186,15 +186,15 @@ if runNr == 1: #make new block/stim/noise sequences for first run
             for time in range(step): #for all the possible steps in conditions
                 num1 = cond[time]#take a number from the condition list
                 num2 = cond[time+1]#take a second number from cond list
-                print('time: ' +str(time)+ ', numbers: '+str(num1) + 'and'+ str(num2))
+                #print('time: ' +str(time)+ ', numbers: '+str(num1) + 'and'+ str(num2))
                 
                 if num1 == num2 or temPosCombi[num1,num2] == 2: #if numbers are the same or following each other
-                    print('booop! Same num: ' + str(num1 == num2) +', bouble step: '+ str(temPosCombi[num1,num2] == 2))
+                    #print('booop! Same num: ' + str(num1 == num2) +', bouble step: '+ str(temPosCombi[num1,num2] == 2))
                     rnd.shuffle(cond) #shuffle the condition list again
                     temPosCombi = copy.deepcopy(posCombi) #reset the possible conditions
                     break #get out of this loop
                 elif time == 22:
-                    print('check: is it time 22?')
+                    #print('check: is it time 22?')
                     toAdd = copy.deepcopy(cond)
                     blockSeq.append(toAdd)
                     restart = False
@@ -202,7 +202,7 @@ if runNr == 1: #make new block/stim/noise sequences for first run
 
                     
             posCombi = copy.deepcopy(temPosCombi)    
-    print('done: ' +str(blockSeq))
+    #print('done: ' +str(blockSeq))
 
     with open(logLocationBlockSeq, 'wb') as fp:
         pickle.dump(blockSeq, fp)

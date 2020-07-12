@@ -24,7 +24,7 @@ maskType = 2 #masks in 2 SFs
 maskDur = 166.66
 
 nCond = len(durCond)*imagType*maskType
-nStim = 24 # stimuli per block
+nStim = 20 # stimuli per block
 
 
 nBlocksCond = 20 #20 blocks per condition
@@ -55,10 +55,10 @@ nFramesStimMask = nFramesCond[-1] + nFramesMask + 6 #plus 6 blank frames (100ms 
 nPositions = round(nFramesBlock/nFramesStimMask)
 stimPosi = list(range(nPositions)) #24 possible positions in a block
 
-# every block has 24 stimuli, and there will be 10 unique blocks.
+# every block has 20 stimuli, and there will be 10 unique blocks.
 totalPos = round(nStim*nUniBlocks)
 # all positions of stimuli in the whole experiment (for all 10 blocks)
-posReps = ceil(totalPos/nPositions)
+posReps = 10#ceil(totalPos/nPositions) 
 allPosi = stimPosi*posReps
 
 # every stimulus has 10 different spots 
@@ -102,7 +102,7 @@ while DoIt:
     checkSTD = np.std(means)
     checkMin = checkMean - np.amin(means) #get smallest mean
     checkMax = np.amax(means) - checkMean #get biggest mean
-    if checkMin > 2.7 or checkMax > 2.7 or checkMean > (theMean + 0.2) or checkMean < (theMean - 0.2):
+    if checkMin > 2 or checkMax > 2 or checkMean > (theMean + 0.2) or checkMean < (theMean - 0.2):
         print('min: ' + str(checkMin) + ' ...... max: ' + str(checkMax))
         DoIt = True
         
