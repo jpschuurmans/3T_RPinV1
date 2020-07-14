@@ -18,6 +18,7 @@ load([basefolder 'CTFV1_BACK.mat'],'LC','*back', 'imset','nim','nblockspercondit
 %masks:             imset.mask{thetype,thesf,theim}
 %background:        imset.Back_scr{theframe}
 
+outputmat = 'CTFV1_BLEND.mat';
 
 xySize = size(imset.eq_stim{1});
 
@@ -113,17 +114,18 @@ for theback = 1:length(imset.Back_scr) %for all scrambled backgrounds
                 stimulus  = char(stimuli(thestim)) ;
                 name = [backname '_' stimtype stimulus '_' facenum];
                 
-                imwrite(blendim,[outfolder_stim name],'BMP')
+                imwrite(blendim,[outfolder_stim name '.bmp'],'BMP')
                 
             end
             backim = imset.Back_scr{theback};
-            imwrite(backim,[outfolder_back backname],'BMP')
+            imwrite(backim,[outfolder_back backname '.bmp'],'BMP')
         end
     end
     
     %imshow(backim)
 end
 
+save([basefolder outputmat],'-v7.3')
 
 % for times = 20:120
 %     imshow(cell2mat(shiiBlend(2,times))); pause (0.5)
