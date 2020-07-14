@@ -10,3 +10,9 @@
 /mainExpCode/noiseFrames/
 /mainExpCode/data/
 /mainExpCode/__pycache__
+
+/stimuli_matlab/*.mat
+/stimuli_matlab/*.bmp
+/stimuli_matlab/AmpPlotExp/*.mat
+/stimuli_matlab/AmpPlotExp/*.bmp
+/stimuli_matlab/01greenback/
