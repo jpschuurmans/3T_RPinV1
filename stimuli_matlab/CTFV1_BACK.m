@@ -123,6 +123,6 @@ for theframe=1:nscrBack
     imshow(imset.Back_scr{theframe}); pause (0.1)
 end
 
-
+disp('saving..')
 save([basefolder outputmat],'-v7.3')
 

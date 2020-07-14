@@ -2,19 +2,21 @@
 % one way (as close as what xpman program does):
 % a weighted sum of the luminance values of each pixel of the image
 % and the background. 
-% I show how to do on a given image.
-% this is what you should try and do while making the stimuli: 
-% determine which face goes on which
-% frame when (and repeat this across conditions)
 
-close all; clear all
-basefolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/Stimuli/JOLIEN_STIM_MAIN/';
-imagefolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/Stimuli/JOLIEN_STIM_MAIN/stimuli/';
-noisefolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/Stimuli/JOLIEN_STIM_MAIN/noiseFrames/';
-outfolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/Stimuli/JOLIEN_STIM_MAIN/blendStim/';
-load([basefolder 'JOLIEN_PROC.mat'])
-basefolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/Stimuli/JOLIEN_STIM_MAIN/';
-load([basefolder 'JOLIEN_STIM02.mat'],'LC','*back', 'imset','nim','nblockspercondition','Background')
+close all; clear; clc
+
+basefolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/recurrentSF_3T_CodeRepo/stimuli_matlab/';
+outfolder = [basefolder 'stimuli'];
+load([basefolder 'CTFV1_PROC.mat'])
+addpath(basefolder)
+
+load([basefolder 'CTFV1_BACK.mat'],'LC','*back', 'imset','nim','nblockspercondition')
+%inact faces:       imset.eq_stim{theim}
+%negated faces:     imset.neg_stim{theim}
+%scrambled faces:   imset.scr_stim{theim}
+%masks:             imset.mask{thetype,thesf,theim}
+%background:        imset.Back_scr{theframe}
+
 
 clear blend* Blend* alphaIm
 stimweight = 0.5; % proportion of contrast is devoted to stimulus

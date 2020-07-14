@@ -4,13 +4,13 @@
 % this is what you should try and do while making the stimuli: determine which face goes on which
 % frame when (and repeat this across conditions)
 
-close all; clear all
+close all; clear; clc
 
-basefolder = 'F:\JOLIEN\JOLIEN_STIMULI\';
-load([basefolder 'JOLIEN_PROC.mat'])
-addpath(genpath('C:\Users\vgoffaux\Documents\MATLAB\'))
+basefolder = '/home/jschuurmans/Documents/02_recurrentSF_3T/recurrentSF_3T_CodeRepo/stimuli_matlab/';
+load([basefolder 'CTFV1_PROC.mat'])
+addpath(basefolder)
 
-load([basefolder 'JOLIEN_STIM02.mat'],'LC','*back', 'imset','nim','nblockspercondition','Background')
+load([basefolder 'CTFV1_BACK.mat'],'LC','*back', 'imset','nim','nblockspercondition','Background')
 
 clear blend* Blend* alphaIm
 stimweight = 0.5; % proportion of contrast is devoted to stimulus
