@@ -79,10 +79,10 @@ expName = 'Recurrent face processing in V1'
 expInfo = {
         '1. Participant ID': '',
         '2. Run number': ('01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'),
-        '3. Screen hight in px': '1080',
-        '4. Screen width in px': '1920',
-        '5. Screen hight in cm': '39',
-        '6. distance to screen': '134',
+        '3. Screen hight in px': '768', #1080
+        '4. Screen width in px': '1366', #1920
+        '5. Screen hight in cm': '16', #39
+        '6. distance to screen': '60', #???? 134?
         '7. Size of the stimulus in vis degrees': '9'
         }
 
@@ -453,9 +453,8 @@ fix2.setAutoDraw(True)
 #win.close()
 for trial in trialsReady:
     if trialCount == 1 or trialCount % nPositions == 1: #beginning fixation
-        if trialCount >= 4 and trialCount % nPositions == 1:
-###################################ending this movie
-            win.saveMovieFrames(name)
+        #if trialCount >= 4 and trialCount % nPositions == 1:
+            #win.saveMovieFrames(name) #for saving the exp trial -> saves all frames 
         
         #create catchlist for the following block
         fixStart  = clock.getTime() #start tracking time trialCount =30
@@ -519,9 +518,7 @@ for trial in trialsReady:
         toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,None,fix start: '+str(fixStart)+',fix dur: '+ str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ',None,None,None,None,None,None,None,None,None\n'
         logfile.write(toSave)
         print('fixation, dur: ' + str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ' ms')       
-#######################starting this movie
-        name = (dataPath + str(trial['condName']) +'_'+ str(trial['maskType'])+'.gif')
-        win.getMovieFrame()
+        # name = (dataPath + str(trial['condName']) +'_'+ str(trial['maskType'])+'.png')#for saving the exp trial -> save name of frames 
 
     startTrial = clock.getTime()
     response = event.getKeys(timeStamped=clock) #check for responses to target
@@ -539,18 +536,21 @@ for trial in trialsReady:
         reactionTime = (response_time - catchStart)*1000
         print('CLICK!! The reactiontime is ', reactionTime, 'ms' )
 
-    for nFrames in range(fr1[trial['posInBlock']-1]):
+    for nFrames in range(fr1[trial['posInBlock']-1]): #stimulus
         stim1[trial['posInBlock']-1].draw()
+        #win.getMovieFrame(buffer = 'back') #for saving the exp trial -> saves all frames 
         win.flip()
     afterStim = clock.getTime()
     stimDur = afterStim - startTrial
-    for nFrames in range(fr2):
-        stim2[trial['posInBlock']-1].draw() 
+    for nFrames in range(fr2): # mask
+        stim2[trial['posInBlock']-1].draw()
+        #win.getMovieFrame(buffer = 'back') #for saving the exp trial -> saves all frames 
         win.flip()
     afterMask = clock.getTime()
     maskDur = afterMask - afterStim
-    for nFrames in range(fr3[trial['posInBlock']-1]):
+    for nFrames in range(fr3[trial['posInBlock']-1]): #background
         stim3[trial['posInBlock']-1].draw()
+        #win.getMovieFrame(buffer = 'back')   #for saving the exp trial -> saves all frames    
         win.flip()
     if not response == [] and ok == 1: #check for responses to target
         last_response = response[-1][0] # most recent response, first in tuple
@@ -639,7 +639,6 @@ print('time exp: ', int(clock))
   
 logfile.close()
 win.close()
-core.quit
 
 
 
