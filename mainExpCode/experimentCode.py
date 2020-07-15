@@ -23,6 +23,8 @@ import numpy.random as rnd          # for random number generators
 import copy
 import math
 
+
+
 #%% =============================================================================
 
 # a block contains 20 unique images + their mask
@@ -32,7 +34,7 @@ durCond = [3, 5, 6, 9] #50, 83.33, 100, 150 ms
 durCondNames = [str(int(durCond[0]*frame)),str(int(durCond[1]*frame)),str(int(durCond[2]*frame)),str(int(durCond[3]*frame))]
 typCond = ['Int', 'Neg', 'Scr']
 sfType = ['LSF', 'HSF']
-nCond = len(durCond)*len(typCond)*len(sfType) #nr of conditions = 12
+nCond = len(durCond)*len(typCond)*len(sfType) #nr of conditions = 24
 
 nBlockPerCond = 20 #nr of blocks per condition (in total)
 nUniBlocks = int(nBlockPerCond/2) #nr of unique blocks per condition = 10 (10 sequences to make)
@@ -57,7 +59,7 @@ baseFolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\recurrentSF_3T_CodeRepo\\
 
 dataPath = baseFolder + 'data'
 stimPath = baseFolder + 'stimuli'
-noisePath = baseFolder + 'noiseFrames'
+backPath = baseFolder + 'background'
 seqLocation = baseFolder + 'sequence_withinBlock.txt'
 
 
@@ -76,7 +78,7 @@ def esc():
 expName = 'Recurrent face processing in V1'
 expInfo = {
         '1. Participant ID': '',
-        '2. Run number': ('01','02','03','04','05','06','07','08','09','10','11'),
+        '2. Run number': ('01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'),
         '3. Screen hight in px': '1080',
         '4. Screen width in px': '1920',
         '5. Screen hight in cm': '39',
@@ -112,8 +114,8 @@ d = int(expInfo['6. distance to screen']) # Distance between monitor and partici
 degreesStim = int(expInfo['7. Size of the stimulus in vis degrees'])
 
 logfile = open(dataFname, 'w')
-logfile.write('screensize is ' + str(scrsize) + 'px and distance to screen is ' +str(d)+ 'cm\n')
-logfile.write('BlockNumber,PositionInRun,PositionInBlock,TrialNumber,ConditionName,TrialStart,TrialDuration,StimDuration,MaskDuration,NumberOfStimulusFrames,ImageFileName,MaskFileName,NoiseFrame,CatchTrial,Keypress,ResponseStamp,ResponseTime\n')
+logfile.write('screensize is ' + str(scrsize[0]) +'x'+str(scrsize[1])+ 'px and distance to screen is ' +str(d)+ 'cm. Hight of monitor is '+str(h)+'cm. Visual degree: ' + str(degreesStim) +'\n')
+logfile.write('BlockNumber,PositionInRun,PositionInBlock,TrialNumber,ConditionName,SpatialFrequency,TrialStart,TrialDuration,StimDuration,MaskDuration,NumberOfStimulusFrames,ImageFileName,MaskFileName,BackFrame,CatchTrial,Keypress,ResponseStamp,ResponseTime\n')
 #logfile.write('Trial_Number, Stimulus, StimCode, StimOnset, StimOffset, Response, 
 #       ResponseTime \n') 
 
@@ -128,14 +130,14 @@ stimSize = stimSize*1.375
 #%% =============================================================================
 #make or load block order for participant
 logLocationBlockSeq = os.path.join(dataPath, expInfo['1. Participant ID'] + 'blockSeq.txt')
-logLocationNoiseSeq = os.path.join(dataPath, expInfo['1. Participant ID'] + 'noiseSeq.txt')
+logLocationBackSeq = os.path.join(dataPath, expInfo['1. Participant ID'] + 'backSeq.txt')
 logLocationBlockCount = os.path.join(dataPath, expInfo['1. Participant ID'] + 'blockCount.txt')
 logLocationStimSeq = os.path.join(dataPath, expInfo['1. Participant ID'] + 'stimSeq.txt')
 
 
 runNr = int(expInfo['2. Run number'])
 
-if runNr == 1: #make new block/stim/noise sequences for first run
+if runNr == 1: #make new block/stim/back sequences for first run
    
     #make checkerboard face/background and their inverts
     size_in_deg = 0.6 # The checker size in degrees
@@ -208,14 +210,17 @@ if runNr == 1: #make new block/stim/noise sequences for first run
         pickle.dump(blockSeq, fp)
     
     #20 blocks per condition (10 unique ones times 2)
-    #sequence for noise background:
-    noiseSeq = []
-    noiseList = (list(range(nUniBlocks)))*2
+    #sequence for background:
+    backSeq = []
+    backList = (list(range(nUniBlocks)))
     k=0
-    while k < 12:
-        random.shuffle(noiseList)
-        toAdd = copy.deepcopy(noiseList)
-        noiseSeq.append(toAdd)
+    while k < nCond:# every row is a conditon/run
+        random.shuffle(backList) #every column is a block
+        toAdd = copy.deepcopy(backList) # every number is a background type
+        toAdd2 = copy.deepcopy(backList)
+        random.shuffle(toAdd2)
+        toAdd.extend(toAdd2)
+        backSeq.append(toAdd) 
         k +=1
     
     blockCount = list(np.zeros(nCond)) #there are 24 conditions.
@@ -224,17 +229,18 @@ if runNr == 1: #make new block/stim/noise sequences for first run
     # blockSeq is the order of blocks within a run..
     #stimSeq is the order of stimuli within each block
     #seqLocation = 'sequence_withinBlock.txt'
+    stimSeq = []
     stimSeq = np.genfromtxt(seqLocation,dtype='int',delimiter=',') #seq within blocks
-    stimSeq = np.append(stimSeq,stimSeq,axis=0)
-    np.random.shuffle(stimSeq)
+    stimSeq = np.append(stimSeq,stimSeq,axis=0) # 10 unique blocks, repeted twice for p
+    np.random.shuffle(stimSeq) # 20 stim per block (columns) + their position for all blocks (20per cond)
 
 else: #get the old pickled stuff for the other runs
     with open(logLocationBlockSeq, 'rb') as fp:
         blockSeq = pickle.load(fp)
     with open(logLocationBlockSeq, 'wb') as fp:
         pickle.dump(blockSeq, fp)
-    with open(logLocationNoiseSeq, 'rb') as fp:
-        noiseSeq = pickle.load(fp)
+    with open(logLocationBackSeq, 'rb') as fp:
+        backSeq = pickle.load(fp)
     with open(logLocationBlockCount, 'rb') as fp:
         blockCount = pickle.load(fp)
     with open(logLocationStimSeq, 'rb') as fp:
@@ -248,28 +254,28 @@ runSeq =  blockSeq[runNr-1] #sequence of blocks within the current run
 
 
 faceNames = []
-maskNames = []
+maskLSFNames = []
+maskHSFNames = []
 for times in range(nUniBlocks):
     if times < 9:
-        name = 'nf0' + str(times+1)
+        name = 'bg0' + str(times+1)
     else:
-        name = 'nf' + str(times+1)
+        name = 'bg' + str(times+1)
     
-    stimSpecNoise = glob.glob(os.path.join(stimPath, name + '*Stim*.bmp'))
-    stimSpecNoise.sort()
-    maskSpecNoise = glob.glob(os.path.join(stimPath, name + '*Mask*.bmp'))
-    maskSpecNoise.sort()
-    faceNames.append(stimSpecNoise)
-    maskNames.append(maskSpecNoise)
+    stimSpecBack = glob.glob(os.path.join(stimPath, name + '*Stim*.bmp'))
+    stimSpecBack.sort()
+    maskLSFSpecBack = glob.glob(os.path.join(stimPath, name + '*MaskLSF*.bmp'))
+    maskLSFSpecBack.sort()
+    maskHSFSpecBack = glob.glob(os.path.join(stimPath, name + '*MaskHSF*.bmp'))
+    maskHSFSpecBack.sort()    
+    faceNames.append(stimSpecBack)
+    #maskNames.append(maskSpecBack)
+    maskLSFNames.append(maskLSFSpecBack)
+    maskHSFNames.append(maskHSFSpecBack)
 
-noiseNames = glob.glob(os.path.join(noisePath, '*.bmp'))
-noiseNames.sort()
+backNames = glob.glob(os.path.join(backPath, '*.bmp'))
+backNames.sort()
 
-#condition/block numbers, to make it more clear:
-#			50		83.3	100	    150
-#int		1		4		7		10
-#neg		2		5		8		11
-#scr		3		6		9		12
 
 allTrialsOrder = []
 stimPos = list(range(nPositions)) #possible positions within a block
@@ -278,17 +284,18 @@ blockPos = 1
 #creating a trials order for all 
 
 for blockNr in runSeq: #loop through blocks in specific run
-    trials = stimSeq[blockNr] #get specific stim order for this block
+    trials = stimSeq[int(blockCount[blockNr])] #get specific stim order for this block
     trialNumber = 0
-    #select the correct noise frame
-    noiseType = noiseSeq[blockNr][int(blockCount[blockNr])]
-    if noiseType < 9:
-        noiseName = 'nf0' + str(noiseType+1)
+    #select the correct back frame -> backSeq[block][run]
+    backType = backSeq[blockNr][int(blockCount[blockNr])]
+    if backType < 9:
+        backName = 'bg0' + str(backType+1)
     else:
-        noiseName = 'nf' + str(noiseType+1)
-    noise = [i for i in noiseNames if (noiseName + '.bmp') in i]
-    blockFaceNames = faceNames[noiseType]
-    blockMaskNames = maskNames[noiseType]
+        backName = 'bg' + str(backType+1)
+    back = [i for i in backNames if (backName + '.bmp') in i]
+    blockFaceNames = faceNames[backType]
+    blockMaskLSFNames = maskLSFNames[backType]
+    blockMaskHSFNames = maskHSFNames[backType]
     
     # decide which trials will be catch trials
     # 2 per block, one in first half other in second half
@@ -301,34 +308,55 @@ for blockNr in runSeq: #loop through blocks in specific run
     random.shuffle(toAdd)
     catchList.extend(toAdd)
     
+    #condition/block numbers, to make it more clear:
+    #LSF		50		83.3	100	    150
+    #int		1		7		13		19
+    #neg		2		8		14		20
+    #scr		3		9		15		21
+    
+    #HSF		50		83.3	100	    150
+    #int		4		10		16		22
+    #neg		5		11		17		23
+    #scr		6		12		18		24    
+    #,13,16,19,22
+    
+    
     for position in stimPos: #if position contains no stims, no im/mask/trailnr 
         image = None 
         mask = None
+        maskType = None
         trialNr = None
         condiName = None
         #if there is a trial for the specific position, give it correct timing info
-        if any(map((lambda value: value == blockNr), (0,1,2))):
+        if any(map((lambda value: value == blockNr), (0,1,2,3,4,5))): #50ms
             stimFr = durCond[0]
             duration = durCondNames[0] +'ms'
-        elif any(map((lambda value: value == blockNr), (3,4,5))):
+        elif any(map((lambda value: value == blockNr), (6,7,8,9,10,11))): #83ms
             stimFr = durCond[1]
             duration = durCondNames[1] +'ms'
-        elif any(map((lambda value: value == blockNr), (6,7,8))):
+        elif any(map((lambda value: value == blockNr), (12,13,14,15,16,17))):#100ms
             stimFr = durCond[2]
             duration = durCondNames[2] +'ms'
-        else:
+        elif any(map((lambda value: value == blockNr), (18,19,20,21,22,23))):#150ms
             stimFr = durCond[3]
             duration = durCondNames[3] +'ms'
-        if any(map((lambda value: value == blockNr), (0,3,6,9))): #intact stim
+            
+        if any(map((lambda value: value == blockNr), (0,3,6,9,12,15,18,21))): #intact stim
             trType = 0
-        elif any(map((lambda value: value == blockNr), (1,4,7,10))): #neg stim
+        elif any(map((lambda value: value == blockNr), (1,4,7,10,13,16,19,22))): #neg stim
             trType = 20
-        else:
-            trType = 40    
+        elif any(map((lambda value: value == blockNr), (2,5,8,11,14,17,20,23))): #scr
+            trType = 40
+        
+        if any(map((lambda value: value == blockNr), (0,1,2,6,7,8,12,13,14,18,19,20))): #LSF
+            maskset = blockMaskLSFNames;
+        elif any(map((lambda value: value == blockNr), (3,4,5,9,10,11,15,16,17,21,22,23))): #HSF
+            maskset = blockMaskHSFNames;
         if position in trials:
             index = np.where(trials == position)
-            image = blockFaceNames[index[0][0]+trType][-18:]
-            mask = blockMaskNames[index[0][0]+trType][-18:]
+            image = blockFaceNames[index[0][0]+trType][-19:]
+            mask = maskset[index[0][0]+trType][-22:]
+            maskType = mask[12:-7]
             trialNumber += 1
             trialNr  = trialNumber
             condiName = image[5:8] + '_' + duration
@@ -340,15 +368,16 @@ for blockNr in runSeq: #loop through blocks in specific run
                                'stimFrames': stimFr,
                                'imageName': image,
                                'maskName': mask,
-                               'noiseFrame': noise[0][-8:],
+                               'maskType' : maskType,
+                               'backFrame': back[0][-8:],
                                'nrOfBlockOccurenceInExp': blockCount[blockNr],
                                'catchTrial': catchList[position]})
     blockPos += 1
     blockCount[blockNr] += 1
 
-# pickle the noise sequence and stim sequence file
-with open(logLocationNoiseSeq, 'wb') as fp:
-    pickle.dump(noiseSeq, fp)
+# pickle the back sequence and stim sequence file
+with open(logLocationBackSeq, 'wb') as fp:
+    pickle.dump(backSeq, fp)
 with open(logLocationBlockCount, 'wb') as fp:
     pickle.dump(blockCount, fp)    
 with open(logLocationStimSeq, 'wb') as fp:
@@ -362,7 +391,7 @@ trialsReady = data.TrialHandler(allTrialsOrder, nReps=1, method='sequential',
 checkerboards = []
 checkerboards.append(glob.glob(os.path.join(dataPath, '*Back.bmp')))
 checkerboards.append(glob.glob(os.path.join(dataPath, '*Face.bmp')))
-checkerboards[[1][0]][1]
+
 
 #%% =============================================================================
 #window setup
@@ -424,6 +453,10 @@ fix2.setAutoDraw(True)
 #win.close()
 for trial in trialsReady:
     if trialCount == 1 or trialCount % nPositions == 1: #beginning fixation
+        if trialCount >= 4 and trialCount % nPositions == 1:
+###################################ending this movie
+            win.saveMovieFrames(name)
+        
         #create catchlist for the following block
         fixStart  = clock.getTime() #start tracking time trialCount =30
         win.flip()
@@ -440,11 +473,11 @@ for trial in trialsReady:
                     col = colourChange 
                 else:
                     col = (1.0, 1.0, 1.0)
-                im1 = Image.open(os.path.join(noisePath, allTrialsOrder[trNum]['noiseFrame']))
+                im1 = Image.open(os.path.join(backPath, allTrialsOrder[trNum]['backFrame']))
                 stim1.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im1,color=col))
-                im2 = Image.open(os.path.join(noisePath, allTrialsOrder[trNum]['noiseFrame']))
+                im2 = Image.open(os.path.join(backPath, allTrialsOrder[trNum]['backFrame']))
                 stim2.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im2,color=col))
-                im3 = Image.open(os.path.join(noisePath, allTrialsOrder[trNum]['noiseFrame']))
+                im3 = Image.open(os.path.join(backPath, allTrialsOrder[trNum]['backFrame']))
                 stim3.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im3,color=col))
                 fr1.append(fr2)
                 fr3.append((totalFr - fr2)-fr2)
@@ -457,7 +490,7 @@ for trial in trialsReady:
                 stim1.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im1,color=col))
                 im2 = Image.open(os.path.join(stimPath, allTrialsOrder[trNum]['maskName']))
                 stim2.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im2,color=col))
-                im3 = Image.open(os.path.join(noisePath, allTrialsOrder[trNum]['noiseFrame']))
+                im3 = Image.open(os.path.join(backPath, allTrialsOrder[trNum]['backFrame']))
                 stim3.append(visual.ImageStim(win, size=[stimSize,stimSize],image=im3,color=col))
 
                 fr1.append(allTrialsOrder[trNum]['stimFrames'])
@@ -483,9 +516,13 @@ for trial in trialsReady:
                     x=2
         for nFrames in range(60):  #last second of fixation start flipping, to prevent frame drops later on
             win.flip()            
-        toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ',None,None,None,None,None,None,None,None,None\n'
+        toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,None,fix start: '+str(fixStart)+',fix dur: '+ str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ',None,None,None,None,None,None,None,None,None\n'
         logfile.write(toSave)
         print('fixation, dur: ' + str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ' ms')       
+#######################starting this movie
+        name = (dataPath + str(trial['condName']) +'_'+ str(trial['maskType'])+'.gif')
+        win.getMovieFrame()
+
     startTrial = clock.getTime()
     response = event.getKeys(timeStamped=clock) #check for responses to target
     esc()
@@ -501,6 +538,7 @@ for trial in trialsReady:
         ok = 0
         reactionTime = (response_time - catchStart)*1000
         print('CLICK!! The reactiontime is ', reactionTime, 'ms' )
+
     for nFrames in range(fr1[trial['posInBlock']-1]):
         stim1[trial['posInBlock']-1].draw()
         win.flip()
@@ -522,9 +560,11 @@ for trial in trialsReady:
         print('CLICK!! The reactiontime is ', reactionTime, 'ms' )
     endTrial = clock.getTime()
     trialDuration = round((endTrial-startTrial)*1000)
-    print('block:', int(trial['blockNr']),', trial', int(trialCount),
+
+    
+    print(trial['condName'],' - ',trial['maskType'] ,'block:', int(trial['blockNr']),', trial', int(trialCount),
           ', trial time: ', round((endTrial-startTrial)*1000), 'ms')
-    toSave = str(trial['blockNr'])+','+str(trial['posInRun'])+','+str(trial['posInBlock'])+','+str(trial['trialNr']) +','+ str(trial['condName']) +','+ str(startTrial)+','+ str(trialDuration) +','+ str(round(stimDur*1000)) +','+ str(round(maskDur*1000)) +','+ str(trial['stimFrames']) +','+ str(trial['imageName']) +','+ str(trial['maskName']) +','+ str(trial['noiseFrame'])+','+ str(int(trial['catchTrial']))+','+str(last_response)+','+str(response_time)+','+str(reactionTime)+'\n' 
+    toSave = str(trial['blockNr'])+','+str(trial['posInRun'])+','+str(trial['posInBlock'])+','+str(trial['trialNr']) +','+ str(trial['condName']) +','+ str(trial['maskType'])+','+ str(startTrial)+','+ str(trialDuration) +','+ str(round(stimDur*1000)) +','+ str(round(maskDur*1000)) +','+ str(trial['stimFrames']) +','+ str(trial['imageName']) +','+ str(trial['maskName']) +','+ str(trial['backFrame'])+','+ str(int(trial['catchTrial']))+','+str(last_response)+','+str(response_time)+','+str(reactionTime)+'\n' 
     logfile.write(toSave)
     if not last_response == '': #empry responses if it's already logged
         esc() # in case we need to shut down the expt
@@ -540,7 +580,7 @@ for nFrames in range(600): # 600 = 10 seconds
     win.flip()
 fixNow = clock.getTime()
 timeFix = fixNow-fixStart 
-toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(round(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
+toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,None,fix start: '+str(fixStart)+',fix dur: '+ str(round(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
 logfile.write(toSave)
 
 #final face chackerboard, then background checkerboard    
@@ -566,7 +606,7 @@ for checks in range(2): #checks=1 is face checks=0 is background
     else:
         checkName = 'back checkers'
        
-    toSave = checkName + ',3Hz aka 6Hz,0,0,'+ 'checkerboard,checker start: '+str(checkerTimeStart)+',checker dur: '+ str(round(checkerTimeTotal)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
+    toSave = checkName + ',3Hz aka 6Hz,0,0,'+ 'checkerboard,None,checker start: '+str(checkerTimeStart)+',checker dur: '+ str(round(checkerTimeTotal)*1000) + ',None,'+str(checkerboards[[checks][0]][1][-19:])+','+str(checkerboards[[checks][0]][0][-19:])+',None,None,None,None,None\n'
     logfile.write(toSave)
 
 
@@ -595,7 +635,7 @@ win.flip()
 while not 'x' in event.getKeys():
     core.wait(0.1)
 
-
+print('time exp: ', int(clock))
   
 logfile.close()
 win.close()
