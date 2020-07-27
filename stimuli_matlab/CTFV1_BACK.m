@@ -45,7 +45,7 @@ xySize_back = size(im_back);
 im2avg_stim = zeros(length(nim),xySize_back(1),xySize_back(2));
 
 
-for theim = 1:length(nim)
+for theim = 1:length(nim)% normalizing image
     clear im
     im_back = imset.gray_back{theim};
     facepix = im_back(imset.faceindex_back{theim}); % select face pixels

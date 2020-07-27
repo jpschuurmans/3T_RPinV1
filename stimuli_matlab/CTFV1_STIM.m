@@ -196,7 +196,7 @@ loglog(Scales,sum(AmpHist,2)','bd',exp(fineScale),PredAmp,'b-')
 
 %% scramble phase
 nscrversions_perFace= 4; %the same mask across normal, negated, and scrambled conditions (n = 1), also need a scrambled stimulus (n=2) , and 2 versions (because 2 block repetitions per run)
-maskcontrast = LC(2)*1.5; % mask had higher contrast for masking efficiency
+maskcontrast = LC(2)*2.5; % mask had higher contrast for masking efficiency
 clear amplim phasim i
 amplim = cell(1,length(nim)); %prealocate
 phasim = cell(1,length(nim)); %prealocate
@@ -205,6 +205,9 @@ opt = struct;
 opt.type = 'butt';
 opt.order = 2;
 opt.whichfilter = 2;
+LSFcutoff = [1 8.5]; % lsf cutoff 3 octaves
+HSFcutoff = [8.5 (xySize_stim(1)/2)]; %4 octaves -- making 2 ranges adjecent
+% sf octaves!!
 
 for theim=1:length(nim)
     clear daimage im_stim
@@ -224,7 +227,7 @@ for theim=1:length(nim)
             facepix = realrandspect(imset.faceindex_stim{theim});
             facepix = facepix - mean(facepix); % normalize face pixel values (step1)
             facepix = facepix/std(facepix); % normalize face pixel values (step2)
-            facepix = (facepix*maskcontrast) + LC(1);
+            facepix = (facepix*LC(2)) + LC(1);
             fprintf('%d norm check scr - mean: %d - std: %d\n',theim,mean(facepix),std(facepix)) % check normalization worked
             realrandspect(imset.faceindex_stim{theim} ) = facepix; % replace face pixels of the original image by the normalized ones
             realrandspect(imset.backindex_stim{theim} ) = LC(1); % isoluminant background
@@ -238,9 +241,9 @@ for theim=1:length(nim)
             for thesf = 1:length(Cond3levels) %for nr of SFs
                 clear temp facepix
                 if thesf == 1 % first for LSF
-                    opt.cutoff = [2 10]; % LSF faces
+                    opt.cutoff = LSFcutoff; % LSF faces
                 elseif thesf == 2 %then for HSF
-                    opt.cutoff = [30 xySize_stim/2]; % HSF faces
+                    opt.cutoff = HSFcutoff; % HSF faces
                 end
                 clear angleV facepix
                 angleV= reshape((phasim{theim}), 1, numel(phasim{theim}));
@@ -270,7 +273,7 @@ for theim=1:length(nim)
 end
 
 
-fig = figure('Color',[0.5 0.5 0.5]);
+fig = figure('Color',[LC(1) LC(1) LC(1)]);
 count = 0;
 for thesf = 1:length(Cond3levels) %for both SFs
     for thetype = 1:length(stimtype) %for all conditions

@@ -5,7 +5,7 @@ function [ imfilt ] = KP_SF_Filter( im, opt )
 % opt.type = ''; can be 'butt' for butterworth or 'gauss' for gaussian
 %                filter
 % opt.order = []; this is only needed if .type == 'butt'; if not given,
-% defaults to 2 (higher order means sharper cutoff, but don’t overdo it because stuff will start ringing if too steep)
+% defaults to 2 (higher order means sharper cutoff, but donâ€™t overdo it because stuff will start ringing if too steep)
 % opt.whichfilter = []; %which filter do you want? 0 == lowpass; 1 == highpass; 2 == bandpass
 % opt.cutoff = []; % can be one number (when .whichfilter is lowpass or
 %                    highpass)or [low,high] (when .whichfilter is bandpass)
