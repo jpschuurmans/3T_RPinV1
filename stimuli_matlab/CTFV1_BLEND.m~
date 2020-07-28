@@ -155,7 +155,7 @@ end
 clear dataStimLback dataStimCback dataStimLface dataStimCface
 clear vecdataStimLback vecdataStimLface vecdataStimCback vecdataStimCface
 
-thestim = 3; %stim, maskLSF, maskHSF
+thestim = 1; %stim, maskLSF, maskHSF
 for thetype = 1:length(Cond1levels) % intact, negated and scrambled
     for theback = 1:length(imset.Back_scr) %for all scrambled backgrounds
         dataStimLback(theback,:) = finalstim_backpixLC{theback,thetype,thestim}(:,1);
@@ -181,14 +181,10 @@ end
 title('Luminance of back pixels across images and blocks')
 legend('Intact','Negated','Scrambled')
 ylim ([0.35 0.55])
-text(4,0.51,'intact')
-text(100,0.51,['mean: ' num2str(mean(vecdataStimLback(1,:))) ', std: ' num2str(std(vecdataStimLback(1,:)))])
-text(4,0.50,'negated')
-text(100,0.50,['mean: ' num2str(mean(vecdataStimLback(2,:))) ', std: ' num2str(std(vecdataStimLback(2,:)))])
-text(4,0.49,'scrambled')
-text(100,0.49,['mean: ' num2str(mean(vecdataStimLback(3,:))) ', std: ' num2str(std(vecdataStimLback(3,:)))])
-
-
+txt = ['int mean: ' num2str(mean(vecdataStimLback(1,:))) ', std: ' num2str(std(vecdataStimLback(1,:)))
+    'neg mean: ' num2str(mean(vecdataStimLback(2,:))) ', std: ' num2str(std(vecdataStimLback(2,:)))
+    'scr mean: ' num2str(mean(vecdataStimLback(3,:))) ', std: ' num2str(std(vecdataStimLback(3,:)))];
+text(4,0.5,txt)
 
 subplot(2,2,2)
 for thetype = 1:length(Cond1levels) % intact, negated and scrambled
@@ -198,12 +194,12 @@ end
 ylim ([0.35 0.55])
 title('Luminance of face pixels across images and blocks')
 legend('Intact','Negated','Scrambled')
-text(4,0.51,'intact')
-text(100,0.51,['mean: ' num2str(mean(vecdataStimLface(1,:))) ', std: ' num2str(std(vecdataStimLface(1,:)))])
-text(4,0.50,'negated')
-text(100,0.50,['mean: ' num2str(mean(vecdataStimLface(2,:))) ', std: ' num2str(std(vecdataStimLface(2,:)))])
-text(4,0.49,'scrambled')
-text(100,0.49,['mean: ' num2str(mean(vecdataStimLface(3,:))) ', std: ' num2str(std(vecdataStimLface(3,:)))])
+text(4,0.54,'intact')
+text(100,0.54,['mean: ' num2str(mean(vecdataStimLface(1,:))) ', std: ' num2str(std(vecdataStimLface(1,:)))])
+text(4,0.53,'negated')
+text(100,0.53,['mean: ' num2str(mean(vecdataStimLface(2,:))) ', std: ' num2str(std(vecdataStimLface(2,:)))])
+text(4,0.52,'scrambled')
+text(100,0.52,['mean: ' num2str(mean(vecdataStimLface(3,:))) ', std: ' num2str(std(vecdataStimLface(3,:)))])
 
 
 subplot(2,2,3)
@@ -214,13 +210,10 @@ end
 ylim ([0.05 0.15])
 title('Contrast of back pixels across images and blocks')
 legend('Intact','Negated','Scrambled')
-text(4,0.125,'intact')
-text(100,0.125,['mean: ' num2str(mean(vecdataStimCback(1,:))) ', std: ' num2str(std(vecdataStimCback(1,:)))])
-text(4,0.12,'negated')
-text(100,0.12,['mean: ' num2str(mean(vecdataStimCback(2,:))) ', std: ' num2str(std(vecdataStimCback(2,:)))])
-text(4,0.115,'scrambled')
-text(100,0.115,['mean: ' num2str(mean(vecdataStimCback(3,:))) ', std: ' num2str(std(vecdataStimCback(3,:)))])
-
+txt = ['int mean: ' num2str(mean(vecdataStimCback(1,:))) ', std: ' num2str(std(vecdataStimCback(1,:)))
+    'neg mean: ' num2str(mean(vecdataStimCback(2,:))) ', std: ' num2str(std(vecdataStimCback(2,:)))
+    'scr mean: ' num2str(mean(vecdataStimCback(3,:))) ', std: ' num2str(std(vecdataStimCback(3,:)))];
+text(4,0.5,txt)
 
 subplot(2,2,4)
 for thetype = 1:length(Cond1levels) % intact, negated and scrambled
@@ -230,12 +223,17 @@ end
 ylim ([0.05 0.15])
 title('Contrast of face pixels across images and blocks')
 legend('Intact','Negated','Scrambled')
-text(4,0.125,'intact')
-text(100,0.125,['mean: ' num2str(mean(vecdataStimCface(1,:))) ', std: ' num2str(std(vecdataStimCface(1,:)))])
-text(4,0.120,'negated')
-text(100,0.120,['mean: ' num2str(mean(vecdataStimCface(2,:))) ', std: ' num2str(std(vecdataStimCface(2,:)))])
-text(4,0.115,'scrambled')
-text(100,0.115,['mean: ' num2str(mean(vecdataStimCface(3,:))) ', std: ' num2str(std(vecdataStimCface(3,:)))])
+txt = ['int mean: ' num2str(mean(vecdataStimCface(1,:))) ', std: ' num2str(std(vecdataStimCface(1,:)))
+    'neg mean: ' num2str(mean(vecdataStimCface(2,:))) ', std: ' num2str(std(vecdataStimCface(2,:)))
+    'scr mean: ' num2str(mean(vecdataStimCface(3,:))) ', std: ' num2str(std(vecdataStimCface(3,:)))];
+text(4,0.5,txt)
+
+text(4,0.54,'intact')
+text(100,0.54,['mean: ' num2str(mean(vecdataStimCface(1,:))) ', std: ' num2str(std(vecdataStimCface(1,:)))])
+text(4,0.53,'negated')
+text(100,0.53,['mean: ' num2str(mean(vecdataStimCface(2,:))) ', std: ' num2str(std(vecdataStimCface(2,:)))])
+text(4,0.52,'scrambled')
+text(100,0.52,['mean: ' num2str(mean(vecdataStimCface(3,:))) ', std: ' num2str(std(vecdataStimLface(3,:)))])
 
 
 
