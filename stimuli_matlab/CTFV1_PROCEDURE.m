@@ -11,6 +11,7 @@ nblockspercondition=20; %% in total
 % nchecker = 5; %% in total
 totalnrun=20;
 nblockperrun=24;
+nstim = 20; %20 stimuli per condition
 
 stimtype={'intact','negated','scrambled'};
 masktype={'LSF','HSF'};
@@ -39,6 +40,6 @@ for level1=1:length(Cond1levels)
         end
     end
 end
-
+clear count level1 level2 level3
 
 save([basefolder 'CTFV1_PROC.mat'])

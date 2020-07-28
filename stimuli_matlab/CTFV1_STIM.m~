@@ -64,7 +64,7 @@ for theim = 1:length(nim)
     
     imset.norm_stim{theim}  = im_stimb;
     
-    facepixneg = facepix*-1;
+    facepixneg = 1-facepix;
     facepixneg = (facepixneg*LC(2)) + LC(1); %equalize
     facepix = (facepix*LC(2)) + LC(1); %desired contrast/luminance
     im_neg = im_stimb;
@@ -75,7 +75,6 @@ for theim = 1:length(nim)
     im_stimb(imset.faceindex_stim{theim} ) = facepix; % replace face pixels of the original image by the equalized  ones
     im_neg(imset.faceindex_stim{theim}) = facepixneg;
     %imshow(im_stimb)
-    %imshow(im_neg)
     im_stimb = padarray(im_stimb,[round(paddims_back/2) round(paddims_back/2)],'replicate'); % pad to get the same dimensions as background image.
     im_neg = padarray(im_neg,[round(paddims_back/2) round(paddims_back/2)],'replicate'); % pad to get the same dimensions as background image.
     im_stimb = im_stimb(1:xySize_back(1),1:(xySize_back));
@@ -123,14 +122,22 @@ end
 
 for theim = 1:length(nim)
     clear facepix im_stimb
-    facepix = imset.eq_stim{theim}(imset.faceindex_stimOnback{theim}); % select face pixels 
+    im_stimb = imset.eq_stim{theim};
+    facepix = im_stimb(imset.faceindex_stimOnback{theim}); % select face pixels 
     fprintf('%d norm check int - mean: %d - std: %d\n',theim,mean(facepix),std(facepix))
+%     
+%     
 %     fprintf('%d norm check int - mean: %d - std: %d\n',theim,mean(facepix),std(facepix))
-    imset.eq_stim{theim}(imset.backindex_stimOnback{theim})  = LC(1); %%%%%%%%%%%%%%%%%%%% Images to use as intact stimuli
-    imshow(imset.eq_stim{theim})
+    im_stimb(imset.backindex_stimOnback{theim})  = LC(1); %%%%%%%%%%%%%%%%%%%% Images to use as intact stimuli
+    imshow(im_stimb)
     
-    facepix = imset.neg_stim{theim}(imset.faceindex_stimOnback{theim}); % select face pixels 
+    facepix = imset.neg_stim{theim}(imset.faceindex_stim{theim}); % select face pixels 
     fprintf('%d norm check neg - mean: %d - std: %d\n',theim,mean(facepix),std(facepix))
+    facepix = facepix - mean(facepix);
+    facepix = facepix/std(facepix); %normalize face pix
+    facepix = (facepix*LC(2)) + LC(1); %equalize face pix
+    fprintf('%d norm check neg - mean: %d - std: %d\n',theim,mean(facepix),std(facepix))
+    imset.neg_stim{theim}(imset.faceindex_stimOnback{theim})  = facepix; %set eq face pix back
     imset.neg_stim{theim}(imset.backindex_stimOnback{theim})  = LC(1); %%%%%%%%%%%%%%%%%%%% Images to use as negated stimuli
     imshow(imset.neg_stim{theim})
 end
