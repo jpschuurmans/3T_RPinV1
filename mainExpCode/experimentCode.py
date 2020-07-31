@@ -231,8 +231,12 @@ if runNr == 1: #make new block/stim/back sequences for first run
     #seqLocation = 'sequence_withinBlock.txt'
     stimSeq = []
     stimSeq = np.genfromtxt(seqLocation,dtype='int',delimiter=',') #seq within blocks
-    stimSeq = np.append(stimSeq,stimSeq,axis=0) # 10 unique blocks, repeted twice for p
-    np.random.shuffle(stimSeq) # 20 stim per block (columns) + their position for all blocks (20per cond)
+    
+    np.random.shuffle(stimSeq)
+    toAdd = copy.deepcopy(stimSeq)
+    np.random.shuffle(toAdd)
+    stimSeq = np.append(stimSeq,toAdd,axis=0) # 10 unique blocks, repeted twice for p
+    # 20 stim per block (columns) + their position for all blocks (20per cond)
 
 else: #get the old pickled stuff for the other runs
     with open(logLocationBlockSeq, 'rb') as fp:
@@ -284,7 +288,10 @@ blockPos = 1
 #creating a trials order for all 
 
 for blockNr in runSeq: #loop through blocks in specific run
-    trials = stimSeq[int(blockCount[blockNr])] #get specific stim order for this block
+    stimSeqNr = int(blockNr+(blockCount[blockNr])) #i.e. block 1 starts with stim sequence 1
+    if stimSeqNr > 19: # there are only 20 sequences (0-19)..  
+        stimSeqNr = int(stimSeqNr - 20) #so when an index is above 19.. start over from start (0)
+    trials = stimSeq[stimSeqNr] #get specific stim order for this block
     trialNumber = 0
     #select the correct back frame -> backSeq[block][run]
     backType = backSeq[blockNr][int(blockCount[blockNr])]
