@@ -55,7 +55,7 @@ colourChange = (0.8, 1.0, 1.0) #(0, 1.0, 1.0) = too red
 #paths
 baseFolder = ''
 #commented out, this is just for testing in Spyder
-baseFolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\recurrentSF_3T_CodeRepo\\mainExpCode\\'
+#baseFolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\recurrentSF_3T_CodeRepo\\mainExpCode\\'
 
 dataPath = baseFolder + 'data'
 stimPath = baseFolder + 'stimuli'
