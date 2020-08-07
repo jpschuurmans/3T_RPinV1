@@ -359,7 +359,7 @@ endExperiment = clock.getTime()
 totalTimeExp = endExperiment - expt_time_elapsed
 
 maxCat = (len(allTrialsOrder)/trPerBlock)*2
-endScore = (100/maxCat)*maxCat
+endScore = (100/maxCat)*totCaught
 toSave = str(endScore) + 'percent of colour changes detected\nTotal experiment time: ' + str(round(totalTimeExp)) + ' minutes'
 logfile.write(toSave)
 
