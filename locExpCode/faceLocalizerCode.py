@@ -257,7 +257,7 @@ while not '1' in event.getKeys():
 
 instruct2.draw()
 win.flip()
-while not '5' in event.getKeys():
+while not 's' in event.getKeys():
     core.wait(0.1)
 
 # =============================================================================

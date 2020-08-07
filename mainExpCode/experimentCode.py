@@ -79,11 +79,11 @@ expName = 'Recurrent face processing in V1'
 expInfo = {
         '1. Participant ID': '',
         '2. Run number': ('01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'),
-        '3. Screen hight in px': '768', #1080
-        '4. Screen width in px': '1366', #1920
-        '5. Screen hight in cm': '16', #39
-        '6. distance to screen': '60', #???? 134?
-        '7. Size of the stimulus in vis degrees': '9'
+        '3. Screen hight in px': '1080', #1080
+        '4. Screen width in px': '1920', #1920
+        '5. Screen hight in cm': '39', #39
+        '6. distance to screen': '175', #???? 134?
+        '7. Size of the stimulus in vis degrees': '5'
         }
 
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
@@ -125,7 +125,7 @@ mmPerStim = mmPerDeg*degreesStim # how big stim should be in mm
 stimSize = mmPerStim*pxlDensY # nr of pixels the face should be
 #HIGHT since the face itself is 400 out of 550 pixels.. stim size should be magnified by 1.375
 #WIDTH since the face itself is 364 out of 550 pixels.. stim size should be magnified by ~1.511
-stimSize = stimSize*1.375
+stimSize = 550
 
 #%% =============================================================================
 #make or load block order for participant
@@ -413,7 +413,7 @@ print('framerate is', frameRate)
 #cra
 instruc01 = 'Welcome!\nHopefully you are comfortable and relaxed.\n\nDuring this experiment you will see faces flashed on the screen.\nThe only thing you should do\nis press a button when the colour changes.\n\nPress a button to continue.\n(1 -> buttonbox key)'
 instruc01 = visual.TextStim(win, color='black', height=32, text=instruc01)
-instruc02 = 'The experiment is about to start!\n\n Waiting for the scanner trigger.. (5)'
+instruc02 = 'The experiment is about to start!\n\n Waiting for the scanner trigger.. (s)'
 instruc02 = visual.TextStim(win, color='black',height=32,text=instruc02)
 
 #create fixation cross
@@ -430,7 +430,7 @@ while not '1' in event.getKeys():
 
 instruc02.draw()
 win.flip()
-while not '5' in event.getKeys():
+while not 's' in event.getKeys():
     core.wait(0.1)
     
 win.mouseVisible = False
@@ -456,6 +456,7 @@ corrResp = 0; totalCatch = 0; ok = 2 #all necessary for the task
 #draw fixation cross
 fix1.setAutoDraw(True)
 fix2.setAutoDraw(True)
+
 
 #win.close()
 for trial in trialsReady:

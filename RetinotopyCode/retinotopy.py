@@ -328,12 +328,11 @@ while not 'c' in event.getKeys():
 
 
 # =============================================================================
-# start waiting for trigger (coded as z)
-# button_thread.start()
-# trigger_message.draw()
-# win.flip()
-# while not 'z' in event.getKeys():
-#     core.wait(0.1)
+# start waiting for trigger (coded as s for LLN scanner)
+trigger_message.draw()
+win.flip()
+while not 's' in event.getKeys():
+    core.wait(0.1)
 #
 # =============================================================================
 
