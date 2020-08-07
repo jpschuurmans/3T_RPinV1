@@ -61,7 +61,7 @@ MaskBack = logical(full(sparse(pix(:,2), pix(:,1), 1, size(blobFinding,1), size(
 MaskFace = logical(full(sparse(pixFace(:,2), pixFace(:,1), 1, size(blobFinding,1), size(blobFinding,2))));
 %imshow(MaskBack)
 %imshow(MaskFace)
-imwrite(MaskFace,[basefolder 'MaskFace'],'BMP')
+imwrite(MaskFace,[basefolder 'MaskIm'],'BMP')
 imwrite(MaskBack,[basefolder 'MaskBack'],'BMP')
 
 
