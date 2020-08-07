@@ -8,6 +8,7 @@ fixationDur=10000;
 startend = 12000*2; % 2x also the end fix
 checkerRuns = 2*10000; % two checker runs at the end
 nblockspercondition=20; %% in total
+backgrounds =10;
 % nchecker = 5; %% in total
 totalnrun=20;
 nblockperrun=24;

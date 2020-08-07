@@ -21,16 +21,25 @@ load([basefolder 'CTFV1_BACK.mat'],'LC','*back', 'imset','nim','nblockspercondit
 
 outputmat = 'CTFV1_BLEND.mat';
 
+%load([basefolder 'CTFV1_BLEND.mat'])
+scalefactor = [3 2];
 xySize = size(imset.eq_stim{1});
 finalSize = [550,550];
 padSize = round((finalSize - xySize)/2);
 
 [MaskIm,~,MaskAlpha] = (imread([basefolder 'blurrymask.png']));
+MaskAlpha = single(MaskAlpha); MaskAlpha = imresize(MaskAlpha,(1/scalefactor(1)));
 
-MaskAlpha = single(MaskAlpha); MaskAlpha = imresize(MaskAlpha, finalSize);
+
+cut = round((length(MaskAlpha)-finalSize(1))/2);
 MaskAlpha = MaskAlpha./max(MaskAlpha(:));
+MaskAlpha = MaskAlpha(cut:end-(cut+1),cut:end-(cut+1));
+
+
+imshow(MaskAlpha)
 imshow(1-MaskAlpha)
 
+%MaskAlpha = imresize(MaskAlpha,1.2,'nearest');
 %%%%%%%%%%%%%% is necessary for selecting backgroundpixels since
 %%%%%%%%%%%%%% the blurrymask contains pixels in the border of
 %%%%%%%%%%%%%% the outline with the same value as the background 
@@ -45,6 +54,8 @@ ind = find(blobs == blobs(1)); % index these pixels
 indFace = find(blobsFace == blobsFace(1));
 pix = s(ind).PixelList; % finding the "pixels" it belongs to
 pixFace = t(indFace).PixelList; 
+
+
 %creating the mask
 MaskBack = logical(full(sparse(pix(:,2), pix(:,1), 1, size(blobFinding,1), size(blobFinding,2))));
 MaskFace = logical(full(sparse(pixFace(:,2), pixFace(:,1), 1, size(blobFinding,1), size(blobFinding,2))));
@@ -59,10 +70,10 @@ SNR = signalcontrast/alpha;
 stimuli = {'Stim' 'MaskLSF' 'MaskHSF'}; %stimuli and mask
 
 %preallocate for speed
-finalstim_backpixLC = cell(length(imset.Back_scr),length(Cond1levels),length(stimuli)); %preallocate
-finalstim_facepixLC = cell(length(imset.Back_scr),length(Cond1levels),length(stimuli)); %preallocate
-finalbackim_backpixLC = cell(length(imset.Back_scr),length(Cond1levels),length(stimuli)); %preallocate
-finalbackim_facepixLC = cell(length(imset.Back_scr),length(Cond1levels),length(stimuli)); %preallocate
+finalstim_backpixLC = cell(backgrounds,length(Cond1levels),length(stimuli)); %preallocate
+finalstim_facepixLC = cell(backgrounds,length(Cond1levels),length(stimuli)); %preallocate
+finalbackim_backpixLC = cell(backgrounds,length(Cond1levels),length(stimuli)); %preallocate
+finalbackim_facepixLC = cell(backgrounds,length(Cond1levels),length(stimuli)); %preallocate
 
 for theback = 1:10 %length(imset.Back_scr) %for all scrambled backgrounds
     fprintf('bleding and safing images for %d background \n',theback)
@@ -99,11 +110,16 @@ for theback = 1:10 %length(imset.Back_scr) %for all scrambled backgrounds
                 %imshow(signalim)
                 facepix = signalim(imset.faceindex_stimOnback{theface});
                 fprintf('mean: %f - std: %f - face %d for type: %s %s\n',mean2(facepix),std2(facepix),theface,stimtype,stimulus) % check contr and lum for the background
-
+                
+                
+                %signalim = signalim(56:end-55,56:end-55);
+                
                 signalim = signalim*signalcontrast;
                 signalim =  (signalim.*(1-MaskAlpha) ) + (backim.* (MaskAlpha));			
 
                 %imshow(signalim)
+               
+              
                 if thestim == 1 % stimulus that needs blending with background
                     blendim = (signalim + backim);
                 else % a mask that doesnt need blending
@@ -156,23 +172,25 @@ clear dataStimLback dataStimCback dataStimLface dataStimCface
 clear vecdataStimLback vecdataStimLface vecdataStimCback vecdataStimCface
 
 %preallocating
-dataStimLback = zeros(10,length(finalstim_backpixLC(:,1))); dataStimCback = dataStimLback; dataStimLface = dataStimLback; dataStimCface = dataStimLback;
+dataStimLback = zeros(backgrounds,length(finalstim_backpixLC(:,1))); dataStimCback = dataStimLback; dataStimLface = dataStimLback; dataStimCface = dataStimLback;
 vecdataStimLback = zeros(length(Cond1levels),length(reshape(dataStimCface,numel(dataStimCface),1))); vecdataStimLface = vecdataStimLback; vecdataStimCback = vecdataStimLback; vecdataStimCface = vecdataStimLback;
 
 
-thestim = 1; %stim, maskLSF, maskHSF
-for thetype = 1:length(Cond1levels) % intact, negated and scrambled
-    for theback = 1:10 %for all scrambled backgrounds
-        dataStimLback(theback,:) = finalstim_backpixLC{theback,thetype,thestim}(:,1);
-        dataStimCback(theback,:) = finalstim_backpixLC{theback,thetype,thestim}(:,2);
-        dataStimLface(theback,:) = finalstim_facepixLC{theback,thetype,thestim}(:,1);
-        dataStimCface(theback,:) = finalstim_facepixLC{theback,thetype,thestim}(:,2);
-    end
+%thestim = 1; %stim, maskLSF, maskHSF
+for thestim = 1:length(stimuli)
+    for thetype = 1:length(Cond1levels) % intact, negated and scrambled
+        for theback = 1:backgrounds %for all scrambled backgrounds
+            dataStimLback(theback,:) = finalstim_backpixLC{theback,thetype,thestim}(:,1);
+            dataStimCback(theback,:) = finalstim_backpixLC{theback,thetype,thestim}(:,2);
+            dataStimLface(theback,:) = finalstim_facepixLC{theback,thetype,thestim}(:,1);
+            dataStimCface(theback,:) = finalstim_facepixLC{theback,thetype,thestim}(:,2);
+        end
     
-    vecdataStimLback(thetype,:) = reshape(dataStimLback,numel(dataStimLback),1);
-    vecdataStimLface(thetype,:) = reshape(dataStimLface,numel(dataStimLface),1);
-    vecdataStimCback(thetype,:) = reshape(dataStimCback,numel(dataStimCback),1);
-    vecdataStimCface(thetype,:) = reshape(dataStimCface,numel(dataStimCface),1);
+        vecdataStimLback(thetype,:) = reshape(dataStimLback,numel(dataStimLback),1);
+        vecdataStimLface(thetype,:) = reshape(dataStimLface,numel(dataStimLface),1);
+        vecdataStimCback(thetype,:) = reshape(dataStimCback,numel(dataStimCback),1);
+        vecdataStimCface(thetype,:) = reshape(dataStimCface,numel(dataStimCface),1);
+    end
 end
 
 
