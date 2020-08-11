@@ -31,8 +31,8 @@ clear dataStimLback dataStimCback dataStimLface dataStimCface
 clear vecdataStimLback vecdataStimLface vecdataStimCback vecdataStimCface
 
 %preallocating
-dataStimLback = zeros(backgrounds,length(finalstim_backpixLC(:,1))); dataStimCback = dataStimLback; dataStimLface = dataStimLback; dataStimCface = dataStimLback;
-vecdataStimLback = zeros(length(Cond1levels),length(reshape(dataStimCface,numel(dataStimCface),1))); vecdataStimLface = vecdataStimLback; vecdataStimCback = vecdataStimLback; vecdataStimCface = vecdataStimLback;
+%dataStimLback = zeros(backgrounds,length(finalstim_backpixLC(:,1))); dataStimCback = dataStimLback; dataStimLface = dataStimLback; dataStimCface = dataStimLback;
+%vecdataStimLback = zeros(length(Cond1levels),length(reshape(dataStimCface,numel(dataStimCface),1))); vecdataStimLface = vecdataStimLback; vecdataStimCback = vecdataStimLback; vecdataStimCface = vecdataStimLback;
 
 
 %thestim = 1; %stim, maskLSF, maskHSF
@@ -50,6 +50,10 @@ for thestim = 1:length(stimuli)
         vecdataStimCback(thetype,:) = reshape(dataStimCback,numel(dataStimCback),1);
         vecdataStimCface(thetype,:) = reshape(dataStimCface,numel(dataStimCface),1);
     end
+    StimLback(thestim,:,:) = vecdataStimLback;
+    StimLface(thestim,:,:) = vecdataStimLface;
+    StimCback(thestim,:,:) = vecdataStimCback;
+    vStimCface(thestim,:,:) = vecdataStimCface;
 end
 
 
