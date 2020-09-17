@@ -1,6 +1,6 @@
 clear; clc;
 outdir = '/home/jschuurmans/Documents/02_recurrentSF_3T/Data_BIDS';
-D = dir(['/home/jschuurmans/Documents/02_recurrentSF_3T/Data_raw/IG_PILOT_ses2_behav/IG_PILOT_ses2_Fri7Aug', '/*.csv']);
+D = dir(['/home/jschuurmans/Documents/02_recurrentSF_3T/Data_raw/IG_PILOT_ses3_behav', '/*.csv']);
 filenames = {D(:).name}.';
 data = cell(length(D),1);
 for ii = 1: length(D)
@@ -54,8 +54,10 @@ for ii = 1: length(D)
         trial = E(5);
         type = E(6);
         
-        if any(strcmp(trial{1},'fixation')) || any(strcmp(trial{1},'None'))
+        if any(strcmp(trial{1},'fixation'))
             trial_type = strcat(trial{:});
+        elseif any(strcmp(trial{1},'None'))
+            trial_type = 'n/a';
         else
             trial_type = [strcat(trial{:}) '_' strcat(type{:})];
         end
@@ -65,7 +67,13 @@ for ii = 1: length(D)
         
         %take stim_file info (column L = 12)
         stim_file = E(12);
-        stim_file = strcat(stim_file{:});
+        
+        
+        if any(strcmp(stim_file{1},'None'))
+            stim_file = 'n/a';
+        else
+            stim_file = strcat(stim_file{:});
+        end
         %set this stim_file value to the correct column in new file
         X(jj+1,4) = stim_file;
         
@@ -73,13 +81,21 @@ for ii = 1: length(D)
     end
 
     %save this new file as tsv file
-    if ii <10
-        name = [outdir '/sub-01_ses-02_task-mainExp_run-0' num2str(ii) '_events.txt'];
-    else
-        name = [outdir '/sub-01_ses-02_task-mainExp_run-' num2str(ii) '_events.txt'];
-        
-    end
     
+%     if ii < 6
+%         ses = '02';
+%     else
+%         ses = '03';
+%     end
+    
+%     if ii <10
+%         name = [outdir '/sub-01_ses-' ses '_task-mainExp_run-0' num2str(ii) '_events.txt'];
+%     else
+%         name = [outdir '/sub-01_ses-' ses '_task-mainExp_run-' num2str(ii) '_events.txt'];
+%         
+%     end
+    run = ii+12;
+    name = [outdir '/sub-01_ses-04_task-mainExp_run-' num2str(run) '_events.txt'];
     
 
     writematrix(X,name,'Delimiter','\t') 
