@@ -17,7 +17,9 @@ outputmat = 'CTFV1_STIM.mat';
 % load the images, detect face versus background pixels, set luminance and contrast of face pixels
 % to 0 and 1, repectively
 
-scalefactor = [4 2]; % scales used to shrink face images used as stimuli and background image
+scalefactor = [3 2]; % scales used to shrink face images used as stimuli and background image
+%scalefactor = [4 2]; % scales used to shrink face images used as stimuli and background image
+
 for theim = 1:length(nim)
     im_stim = double(imread([imagefolder nim(theim).name]))/256; % read
     im_stim = imresize(im_stim,1/scalefactor(2),'nearest'); % downscale
@@ -27,7 +29,7 @@ for theim = 1:length(nim)
 end
 xySize_raw = size(im_stim);
 xySize_stim = [max(xySize_raw) max(xySize_raw)];
-xySize_back = xySize_stim* (scalefactor(1)/scalefactor(2));
+xySize_back = floor(xySize_stim* (scalefactor(1)/scalefactor(2)));
 paddims_stim = max(xySize_raw(:,1:2)) - min(xySize_raw(:,1:2)); % make a square image
 
 %% Load images, measure L and C, index face/back pixels for stimulus
@@ -61,7 +63,7 @@ for theim = 1:length(nim)
     facepix = facepix/std(facepix); % normalize face pixel values (step2)
     fprintf('%d norm check - mean: %d - std: %d\n',theim,mean(facepix),std(facepix))
     im_stimb(imset.faceindex_stim{theim}) = facepix; % replace face pixels of the original image by the normalized ones
-    
+    %imshow(im_stimb)
     imset.norm_stim{theim}  = im_stimb;
     
     facepixneg = facepix*-1;

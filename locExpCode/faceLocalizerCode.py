@@ -257,7 +257,7 @@ while not '1' in event.getKeys():
 
 instruct2.draw()
 win.flip()
-while not '5' in event.getKeys():
+while not 's' in event.getKeys():
     core.wait(0.1)
 
 # =============================================================================
@@ -359,7 +359,7 @@ endExperiment = clock.getTime()
 totalTimeExp = endExperiment - expt_time_elapsed
 
 maxCat = (len(allTrialsOrder)/trPerBlock)*2
-endScore = (100/maxCat)*maxCat
+endScore = (100/maxCat)*totCaught
 toSave = str(endScore) + 'percent of colour changes detected\nTotal experiment time: ' + str(round(totalTimeExp)) + ' minutes'
 logfile.write(toSave)
 
