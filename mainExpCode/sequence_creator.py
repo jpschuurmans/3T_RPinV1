@@ -21,7 +21,7 @@ import random
 #paths
 baseFolder = ''
 #commented out, this is just for testing in Spyder
-baseFolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\recurrentSF_3T_CodeRepo\\mainExpCode\\'
+#baseFolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\recurrentSF_3T_CodeRepo\\mainExpCode\\'
 
 dataPath = baseFolder + 'data'
 stimPath = baseFolder + 'stimuli'
