@@ -41,7 +41,7 @@ colourChange = (1.0, 1.0, 0.8)
 # paths
 basefolder = '' 
 #commented out, this is just for testing in Spyder
-#basefolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\LocExp_ToTest\\' 
+basefolder = 'C:\\Users\\jolien\\Documents\\3T_RPinV1\\recurrentSF_3T_CodeRepo\\locExpCode\\' 
 
 stimPath = basefolder + 'stimuli'
 dataPath = basefolder + 'data'
@@ -52,6 +52,7 @@ dataPath = basefolder + 'data'
 def esc():
     if 'escape' in last_response:
         logfile.close()
+        eventfile.close()
         win.mouseVisible = True
         win.close()
         core.quit
@@ -63,7 +64,7 @@ def esc():
 # Get subject name, gender, age, handedness through a dialog box
 expName = 'Recurrent face processing in V1'
 expInfo = {
-        'Participant ID': '',
+        'Participant ID': ''
         }    
 
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
@@ -81,12 +82,17 @@ if not os.path.isdir(dataPath):
     os.makedirs(dataPath)
 
 # make a text file to save data with 'comma-separated-values'
+eventName = expInfo['Participant ID'] + '_task-funcLoc__events.csv'
+eventFname = os.path.join(dataPath, eventName)
+
 dataName = expInfo['Participant ID'] + '_faceLoc_' + expInfo['date'] + '.csv'
 dataFname = os.path.join(dataPath, dataName)
 
 logfile = open(dataFname, 'w')
 logfile.write('BlockNumber, TrialNumber, StimulusType, ImageName, StimOnset, StimOffset, CatchTrial, Response, ResponseTime \n')
 
+eventfile = open(eventFname, 'w')
+eventfile.write('onset, duration, trial_type\n')
 
 #%% =============================================================================
 # create stimuli
@@ -241,7 +247,7 @@ print('framerate is' , frameRate)
 
 instruct1 = 'During the experiment you\'ll see images appearing on the screen. \nPress a button as soon as you see the colour of the image change.\n\nIt is important to fixate on the fixation dot in the middle of the screen.\n\nPress a button to continue.. (buttonbox key = 1)'
 instruct1 = visual.TextStim(win, height=32, text=instruct1)
-instruct2 = 'The experiment is about to start!\nWaiting for scanner..\n(trigger = 5)'
+instruct2 = 'The experiment is about to start!\nWaiting for scanner..\n(trigger = s)'
 instruct2 = visual.TextStim(win, height=32, text=instruct2)
    
 #create fixation cross
@@ -284,10 +290,13 @@ for nFrames in range(720): #12sec
     win.flip()
 toSave = 'StartFix,NA,StartFix,fix,' + str(expt_time_elapsed) +','+ str(clock.getTime()) + ',NA, NA, NA\n'
 logfile.write(toSave)
+toSave2 = str(expt_time_elapsed) +','+ str(clock.getTime()-expt_time_elapsed) + ',fixation\n'
+eventfile.write(toSave2)
 
 trialCount = 1
 trialInBlock = 0
 totCaught = 0
+fixEndtime = clock.getTime()
 
 for trial in trialsReady:
     trialOnsetTime = clock.getTime()
@@ -330,17 +339,24 @@ for trial in trialsReady:
     condition = trial['condName']; whichBlock = trial['blockNr']; imName = trial['imageName']; catTrial = trial['catchTrial']
     toSave = str(whichBlock) +','+ str(trialCount) +','+ str(condition) +','+ str(imName) +','+ str(trialOnsetTime) +','+ str(clock.getTime()) +','+ str(catTrial)  +','+ str(last_response)  +','+ str(response_time)  +'\n' 
     logfile.write(toSave)
+
     print('trial: ', trialCount, ', trial type: ', condition)
     if trialCount % 10 == 0:
         trialOnsetTime = clock.getTime()
-
+        
+        toSave2 = str(fixEndtime) +','+ str(trialOnsetTime-fixEndtime) +','+  str(condition) + '\n'
+        eventfile.write(toSave2)
+        
         for nFrames in range(600): #10sec
             win.flip()
 
         condition = trial['condName']
         whichBlock = trial['blockNr']
-        toSave = 'Fixation, NA, Fixation, fix,' + str(trialOnsetTime) +','+ str(clock.getTime()) +','+ str(last_response) +','+ str(response_time) + '\n'
+        fixEndtime = clock.getTime()
+        toSave = 'Fixation, NA, Fixation, fix,' + str(trialOnsetTime) +','+ str(fixEndtime) +','+ str(last_response) +','+ str(response_time) + '\n'
         logfile.write(toSave)
+        toSave2 = str(trialOnsetTime) +','+ str(clock.getTime()-trialOnsetTime) + ',fixation\n'
+        eventfile.write(toSave2)
 
     else:
         trialInBlock += 1
@@ -352,6 +368,9 @@ for nFrames in range(120): #(it already did 10, so 2sec left)
     win.flip()
 toSave = 'EndFixation, NA, EndFixation, fix,' + str(endExpTime) +','+ str(clock.getTime()) +','+ str(last_response) +','+ str(response_time) + '\n'
 logfile.write(toSave)
+toSave2 = str(endExpTime) +','+ str(clock.getTime()-endExpTime) + ',fixation\n'
+eventfile.write(toSave2)
+
 fix1.setAutoDraw(False)
 fix2.setAutoDraw(False)
 win.mouseVisible = True
@@ -373,5 +392,6 @@ while not 'x' in event.getKeys():
     
 # Quit the experiment (closing the window)
 logfile.close()
+eventfile.close()
 win.close()
 core.quit

@@ -66,6 +66,7 @@ seqLocation = baseFolder + 'sequence_withinBlock.txt'
 def esc():
     if 'escape' in last_response:
         logfile.close()
+        eventfile.close()
         win.mouseVisible = True
         win.close()
         core.quit
@@ -102,14 +103,18 @@ runNr = int(expInfo['2. Run number'])
 scrsize = (int(expInfo['4. Screen width in px']),int(expInfo['3. Screen hight in px']))
     
 # make a text file to save data with 'comma-separated-values'
+eventName = expInfo['1. Participant ID'] + '_task-mainExp_run-' + expInfo['2. Run number'] + '_events.csv'
+eventFname = os.path.join(dataPath, eventName)
+
 dataName = expInfo['1. Participant ID'] + '_run' + expInfo['2. Run number'] + '_' + expInfo['date'] + '.csv'
 dataFname = os.path.join(dataPath, dataName)
 
 
 logfile = open(dataFname, 'w')
 logfile.write('BlockNumber,PositionInRun,PositionInBlock,TrialNumber,ConditionName,SpatialFrequency,TrialStart,TrialDuration,StimDuration,MaskDuration,NumberOfStimulusFrames,ImageFileName,MaskFileName,BackFrame,CatchTrial,Keypress,ResponseStamp,ResponseTime\n')
-#logfile.write('Trial_Number, Stimulus, StimCode, StimOnset, StimOffset, Response, 
-#       ResponseTime \n') 
+
+eventfile = open(eventFname, 'w')
+eventfile.write('onset, duration, trial_type\n')
 
 
 stimSize = 550
@@ -369,16 +374,21 @@ corrResp = 0; totalCatch = 0; ok = 2 #all necessary for the task
 #draw fixation cross
 fix1.setAutoDraw(True)
 fix2.setAutoDraw(True)
-
+fixEnd = 0
 
 #win.close()
 for trial in trialsReady:
     if trialCount == 1 or trialCount % nPositions == 1: #beginning fixation
         #if trialCount >= 4 and trialCount % nPositions == 1:
             #win.saveMovieFrames(name) #for saving the exp trial -> saves all frames 
-        
         #create catchlist for the following block
         fixStart  = clock.getTime() #start tracking time trialCount =30
+        
+        if trialCount != 1:
+            toSave2 = str(fixEnd) + ',' + str((fixStart-fixEnd)) + ',' +str(trial['condName']) + '\n'
+            eventfile.write(toSave2) 
+            
+            
         win.flip()
         stim1=[]
         stim2=[]
@@ -436,8 +446,12 @@ for trial in trialsReady:
                     x=2
         for nFrames in range(60):  #last second of fixation start flipping, to prevent frame drops later on
             win.flip()            
+        fixEnd = clock.getTime()
         toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,None,fix start: '+str(fixStart)+',fix dur: '+ str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ',None,None,None,None,None,None,None,None,None\n'
         logfile.write(toSave)
+        toSave2 = str(fixStart) + ',' + str((fixEnd-fixStart)) + ',fixation\n'
+        eventfile.write(toSave2)
+        
         print('fixation, dur: ' + str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ' ms')       
         # name = (dataPath + str(trial['condName']) +'_'+ str(trial['maskType'])+'.png')#for saving the exp trial -> save name of frames 
 
@@ -487,6 +501,7 @@ for trial in trialsReady:
           ', trial time: ', round((endTrial-startTrial)*1000), 'ms')
     toSave = str(trial['blockNr'])+','+str(trial['posInRun'])+','+str(trial['posInBlock'])+','+str(trial['trialNr']) +','+ str(trial['condName']) +','+ str(trial['maskType'])+','+ str(startTrial)+','+ str(trialDuration) +','+ str(round(stimDur*1000)) +','+ str(round(maskDur*1000)) +','+ str(trial['stimFrames']) +','+ str(trial['imageName']) +','+ str(trial['maskName']) +','+ str(trial['backFrame'])+','+ str(int(trial['catchTrial']))+','+str(last_response)+','+str(response_time)+','+str(reactionTime)+'\n' 
     logfile.write(toSave)
+    
     if not last_response == '': #empry responses if it's already logged
         esc() # in case we need to shut down the expt
         last_response = ''; response_time = ''; reactionTime = '';
@@ -503,6 +518,8 @@ fixNow = clock.getTime()
 timeFix = fixNow-fixStart 
 toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,None,fix start: '+str(fixStart)+',fix dur: '+ str(round(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
 logfile.write(toSave)
+toSave2 = str(fixStart) + ',' + str(timeFix) + ',fixation\n'
+eventfile.write(toSave2)
 
 #final face chackerboard, then background checkerboard    
 for checks in range(2): #checks=1 is face checks=0 is background
@@ -529,7 +546,8 @@ for checks in range(2): #checks=1 is face checks=0 is background
        
     toSave = checkName + ',3Hz aka 6Hz,0,0,'+ 'checkerboard,None,checker start: '+str(checkerTimeStart)+',checker dur: '+ str(round(checkerTimeTotal)*1000) + ',None,'+str(checkerboards[[checks][0]][1][-19:])+','+str(checkerboards[[checks][0]][0][-19:])+',None,None,None,None,None\n'
     logfile.write(toSave)
-
+    toSave2 = str(checkerTimeStart) + ',' + str(checkerTimeTotal) + ',' + str(checkerboards[[checks][0]][1][-19:]) + '\n'
+    eventfile.write(toSave2)
 
 #finalfixationnnn
 fixStart = clock.getTime()
@@ -539,6 +557,8 @@ fixNow = clock.getTime()
 timeFix = fixNow-fixStart 
 toSave = 'EndFixatione,final,0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(round(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
 logfile.write(toSave)
+toSave2 = str(fixStart) + ',' + str(timeFix) + ',fixation\n'
+eventfile.write(toSave2)
     
 fix1.setAutoDraw(False)
 fix2.setAutoDraw(False)
@@ -549,16 +569,17 @@ percCorr = (100/totalCatch)*corrResp
 toSave = 'Total run duration: ' + str(totExpDur) + '\nPercentage correct = ' + str(percCorr)
 logfile.write(toSave)
 
-instruc03 = 'This is the end of run ' + str(expInfo['2. Run number']) + ' out of 11\n\nYou have a score of ' + str(round(percCorr)) + '%\nThank you for paying attention :)\n\nPress \'x\' to close the screen.'
+instruc03 = 'This is the end of run ' + str(runNr) + ' out of 11\n\nYou have a score of ' + str(round(percCorr)) + '%\nThank you for paying attention :)\n\nPress \'x\' to close the screen.'
 instruc03 = visual.TextStim(win, color='black',height=32,text=instruc03)
 instruc03.draw()
 win.flip()
 while not 'x' in event.getKeys():
     core.wait(0.1)
 
-print('time exp: ', int(clock))
+print('time exp: ', int(clock.getTime()))
   
 logfile.close()
+eventfile.close()
 win.close()
 
 
