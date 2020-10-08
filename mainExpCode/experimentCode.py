@@ -17,11 +17,8 @@ import os
 import numpy as np
 import glob
 from PIL import Image
-import pickle
 import random
-import numpy.random as rnd          # for random number generators
 import copy
-import math
 
 
 
@@ -69,6 +66,7 @@ seqLocation = baseFolder + 'sequence_withinBlock.txt'
 def esc():
     if 'escape' in last_response:
         logfile.close()
+        eventfile.close()
         win.mouseVisible = True
         win.close()
         core.quit
@@ -81,9 +79,7 @@ expInfo = {
         '2. Run number': ('01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20'),
         '3. Screen hight in px': '1080', #1080
         '4. Screen width in px': '1920', #1920
-        '5. Screen hight in cm': '39', #39
-        '6. distance to screen': '175', #???? 134?
-        '7. Size of the stimulus in vis degrees': '5'
+        '5. Make sequence?': ('no','yes')
         }
 
 dlg = gui.DlgFromDict(dictionary=expInfo, title=expName)
@@ -97,159 +93,83 @@ expInfo['date'] = data.getDateStr()
 expInfo['expName'] = expName
 
 dataPath = os.path.join(dataPath, expInfo['1. Participant ID'])
+
 # Make sure there is a path to write away the data
 if not os.path.isdir(dataPath):
     os.makedirs(dataPath)
-    
-# make a text file to save data with 'comma-separated-values'
-dataName = expInfo['1. Participant ID'] + '_run' + expInfo['2. Run number'] + '_' + expInfo['date'] + '.csv'
-dataFname = os.path.join(dataPath, dataName)
-
-#http://whatismyscreenresolution.net/
-scrsize = (int(expInfo['4. Screen width in px']),int(expInfo['3. Screen hight in px']))
-r = scrsize[1] # Vertical resolution of the monitor
-h = int(expInfo['5. Screen hight in cm']) # Monitor height in cm
-d = int(expInfo['6. distance to screen']) # Distance between monitor and participant in cm
-
-degreesStim = int(expInfo['7. Size of the stimulus in vis degrees'])
-
-logfile = open(dataFname, 'w')
-logfile.write('screensize is ' + str(scrsize[0]) +'x'+str(scrsize[1])+ 'px and distance to screen is ' +str(d)+ 'cm. Hight of monitor is '+str(h)+'cm. Visual degree: ' + str(degreesStim) +'\n')
-logfile.write('BlockNumber,PositionInRun,PositionInBlock,TrialNumber,ConditionName,SpatialFrequency,TrialStart,TrialDuration,StimDuration,MaskDuration,NumberOfStimulusFrames,ImageFileName,MaskFileName,BackFrame,CatchTrial,Keypress,ResponseStamp,ResponseTime\n')
-#logfile.write('Trial_Number, Stimulus, StimCode, StimOnset, StimOffset, Response, 
-#       ResponseTime \n') 
-
-pxlDensY = r/(h*10)
-mmPerDeg = math.atan(1)/45 * (d*10)  # number of pixels per degree
-mmPerStim = mmPerDeg*degreesStim # how big stim should be in mm
-stimSize = mmPerStim*pxlDensY # nr of pixels the face should be
-#HIGHT since the face itself is 400 out of 550 pixels.. stim size should be magnified by 1.375
-#WIDTH since the face itself is 364 out of 550 pixels.. stim size should be magnified by ~1.511
-stimSize = 550
-
-#%% =============================================================================
-#make or load block order for participant
-logLocationBlockSeq = os.path.join(dataPath, expInfo['1. Participant ID'] + 'blockSeq.txt')
-logLocationBackSeq = os.path.join(dataPath, expInfo['1. Participant ID'] + 'backSeq.txt')
-logLocationBlockCount = os.path.join(dataPath, expInfo['1. Participant ID'] + 'blockCount.txt')
-logLocationStimSeq = os.path.join(dataPath, expInfo['1. Participant ID'] + 'stimSeq.txt')
-
 
 runNr = int(expInfo['2. Run number'])
 
-if runNr == 1: #make new block/stim/back sequences for first run
-   
-    #make checkerboard face/background and their inverts
-    size_in_deg = 0.6 # The checker size in degrees
-    # Calculate the number of degrees that correspond to a single pixel. This will
-    # generally be a very small value, something like 0.03.
-    deg_per_px = math.degrees(math.atan2(.5*h, d)) / (.5*r)
-    print(str(deg_per_px) + 's degrees correspond to a single pixel')
-    # Calculate the size of the stimulus in degrees
-    check_size = int(size_in_deg / deg_per_px) #The size of the checkers in pixels
-    n_checks = math.ceil((550/check_size)/2)
-    checkerboard = np.kron([[255, 0] * n_checks, [0, 255] * n_checks] * n_checks, np.ones((check_size, check_size)))
-    checkerboard = np.delete(np.delete(checkerboard,np.s_[550:],0),np.s_[550:],1)
-    masks  = glob.glob(os.path.join(baseFolder + '*.bmp'))
-    masks.sort()
-
-    for maskim in masks:
-        checkycheck = copy.deepcopy(checkerboard)
-        themask = np.array(Image.open(maskim))
-        checkycheck[themask] = 127.5
-        checkerOri = checkycheck.astype(np.uint8)
-        checkerOri = Image.fromarray(checkerOri)
-        #checkerOri.show()
-        toSave = os.path.join(dataPath, 'checkerOri_'+ maskim[-8:])
-        checkerOri.save(toSave)
-        del checkerOri
-        checkycheck = copy.deepcopy(checkerboard)
-        checkycheck = 255-checkycheck
-        checkycheck[themask] = 127.5
-        checkerInv = checkycheck.astype(np.uint8)
-        checkerInv = Image.fromarray(checkerInv)
-        toSave = os.path.join(dataPath, 'checkerInv_'+ maskim[-8:])
-        checkerInv.save(toSave)
-        del checkerInv
+scrsize = (int(expInfo['4. Screen width in px']),int(expInfo['3. Screen hight in px']))
     
-    #make a list for the nr of blocks
-    #making sure that same conditions never follow eachother
-    #and some conditions dont follow a specific condition more often than others
-    blockSeq = []
-    cond = (list(range(nCond)))
-    posCombi = np.zeros((nCond,nCond))
-    step = nCond-1
-    for run in range(nRuns):# 20 times
-        print('Making block sequence for run: ' + str(run))
-        rnd.shuffle(cond) #shuffle the conditions
-        restart = True
-        while restart:
-            temPosCombi = copy.deepcopy(posCombi) #copy the pos positions
-            for time in range(step): #for all the possible steps in conditions
-                num1 = cond[time]#take a number from the condition list
-                num2 = cond[time+1]#take a second number from cond list
-                #print('time: ' +str(time)+ ', numbers: '+str(num1) + 'and'+ str(num2))
-                
-                if num1 == num2 or temPosCombi[num1,num2] == 2: #if numbers are the same or following each other
-                    #print('booop! Same num: ' + str(num1 == num2) +', bouble step: '+ str(temPosCombi[num1,num2] == 2))
-                    rnd.shuffle(cond) #shuffle the condition list again
-                    temPosCombi = copy.deepcopy(posCombi) #reset the possible conditions
-                    break #get out of this loop
-                elif time == 22:
-                    #print('check: is it time 22?')
-                    toAdd = copy.deepcopy(cond)
-                    blockSeq.append(toAdd)
-                    restart = False
-                    temPosCombi[num1,num2] += 1
+# make a text file to save data with 'comma-separated-values'
+eventName = expInfo['1. Participant ID'] + '_task-mainExp_run-' + expInfo['2. Run number'] + '_events.csv'
+eventFname = os.path.join(dataPath, eventName)
 
-                    
-            posCombi = copy.deepcopy(temPosCombi)    
-    #print('done: ' +str(blockSeq))
+dataName = expInfo['1. Participant ID'] + '_run' + expInfo['2. Run number'] + '_' + expInfo['date'] + '.csv'
+dataFname = os.path.join(dataPath, dataName)
 
-    with open(logLocationBlockSeq, 'wb') as fp:
-        pickle.dump(blockSeq, fp)
-    
-    #20 blocks per condition (10 unique ones times 2)
-    #sequence for background:
-    backSeq = []
-    backList = (list(range(nUniBlocks)))
-    k=0
-    while k < nCond:# every row is a conditon/run
-        random.shuffle(backList) #every column is a block
-        toAdd = copy.deepcopy(backList) # every number is a background type
-        toAdd2 = copy.deepcopy(backList)
-        random.shuffle(toAdd2)
-        toAdd.extend(toAdd2)
-        backSeq.append(toAdd) 
-        k +=1
-    
-    blockCount = list(np.zeros(nCond)) #there are 24 conditions.
-    # one condition can be shown 20 timesthroughout the whole experiment    
 
-    # blockSeq is the order of blocks within a run..
-    #stimSeq is the order of stimuli within each block
-    #seqLocation = 'sequence_withinBlock.txt'
-    stimSeq = []
-    stimSeq = np.genfromtxt(seqLocation,dtype='int',delimiter=',') #seq within blocks
-    
-    np.random.shuffle(stimSeq)
-    toAdd = copy.deepcopy(stimSeq)
-    np.random.shuffle(toAdd)
-    stimSeq = np.append(stimSeq,toAdd,axis=0) # 10 unique blocks, repeted twice for p
-    # 20 stim per block (columns) + their position for all blocks (20per cond)
+logfile = open(dataFname, 'w')
+logfile.write('BlockNumber,PositionInRun,PositionInBlock,TrialNumber,ConditionName,SpatialFrequency,TrialStart,TrialDuration,StimDuration,MaskDuration,NumberOfStimulusFrames,ImageFileName,MaskFileName,BackFrame,CatchTrial,Keypress,ResponseStamp,ResponseTime\n')
 
-else: #get the old pickled stuff for the other runs
-    with open(logLocationBlockSeq, 'rb') as fp:
-        blockSeq = pickle.load(fp)
-    with open(logLocationBlockSeq, 'wb') as fp:
-        pickle.dump(blockSeq, fp)
-    with open(logLocationBackSeq, 'rb') as fp:
-        backSeq = pickle.load(fp)
-    with open(logLocationBlockCount, 'rb') as fp:
-        blockCount = pickle.load(fp)
-    with open(logLocationStimSeq, 'rb') as fp:
-        stimSeq = pickle.load(fp)
-    
+eventfile = open(eventFname, 'w')
+eventfile.write('onset, duration, trial_type\n')
+
+
+stimSize = 550
+
+if expInfo['5. Make sequence?'] == 'yes':
+    sequence_path = os.path.join(baseFolder + 'sequence_creator.py')
+    exec(open(sequence_path).read())
+
+
+
+#%% =============================================================================
+#make or load block order for participant
+path_blockSeq = os.path.join(dataPath, expInfo['1. Participant ID'] + 'blockSeq.txt')
+path_backSeq = os.path.join(dataPath, expInfo['1. Participant ID'] + 'backSeq.txt')
+path_blockCount = os.path.join(dataPath, expInfo['1. Participant ID'] + 'blockCount.txt')
+path_stimSeq = os.path.join(dataPath, expInfo['1. Participant ID'] + 'stimSeq.txt')
+
+blockSeq = []
+backSeq = []
+stimSeq = []
+
+# opening the block sequence list
+with open(path_blockSeq, 'r') as f:
+    mystring = f.read()
+my_list = mystring.split("\n")
+for item in my_list:
+    line = item.split(',')
+    line.remove('')
+    new_line = [int(i) for i in line]
+    blockSeq.append(new_line)
+blockSeq.remove([])  
+
+
+# opening the background sequence list
+with open(path_backSeq, 'r') as f:
+    mystring = f.read()
+my_list = mystring.split("\n")
+for item in my_list:
+    line = item.split(',')
+    line.remove('')
+    new_line = [int(i) for i in line]
+    backSeq.append(new_line)
+backSeq.remove([])
+
+
+# opening the stimulus sequence list
+with open(path_stimSeq, 'r') as f:
+    mystring = f.read()
+my_list = mystring.split("\n")
+for item in my_list:
+    line = item.split(',')
+    line.remove('')
+    new_line = [int(i) for i in line]
+    stimSeq.append(new_line)
+stimSeq.remove([])    
 
 
 #%% =============================================================================
@@ -284,6 +204,10 @@ backNames.sort()
 allTrialsOrder = []
 stimPos = list(range(nPositions)) #possible positions within a block
 blockPos = 1
+
+#For shuffle every run
+blockCount = list(np.zeros(nCond)) #there are 24 conditions.
+blockCount = [x+(runNr-1) for x in blockCount]
 
 #creating a trials order for all 
 
@@ -360,9 +284,10 @@ for blockNr in runSeq: #loop through blocks in specific run
         elif any(map((lambda value: value == blockNr), (3,4,5,9,10,11,15,16,17,21,22,23))): #HSF
             maskset = blockMaskHSFNames;
         if position in trials:
-            index = np.where(trials == position)
-            image = blockFaceNames[index[0][0]+trType][-19:]
-            mask = maskset[index[0][0]+trType][-22:]
+            #index = np.where(trials == position)
+            index = trials.index(position)
+            image = blockFaceNames[index+trType][-19:]
+            mask = maskset[index+trType][-22:]
             maskType = mask[12:-7]
             trialNumber += 1
             trialNr  = trialNumber
@@ -381,14 +306,7 @@ for blockNr in runSeq: #loop through blocks in specific run
                                'catchTrial': catchList[position]})
     blockPos += 1
     blockCount[blockNr] += 1
-
-# pickle the back sequence and stim sequence file
-with open(logLocationBackSeq, 'wb') as fp:
-    pickle.dump(backSeq, fp)
-with open(logLocationBlockCount, 'wb') as fp:
-    pickle.dump(blockCount, fp)    
-with open(logLocationStimSeq, 'wb') as fp:
-    pickle.dump(stimSeq, fp)
+    
 
 
 trialsReady = data.TrialHandler(allTrialsOrder, nReps=1, method='sequential',
@@ -456,16 +374,21 @@ corrResp = 0; totalCatch = 0; ok = 2 #all necessary for the task
 #draw fixation cross
 fix1.setAutoDraw(True)
 fix2.setAutoDraw(True)
-
+fixEnd = 0
 
 #win.close()
 for trial in trialsReady:
     if trialCount == 1 or trialCount % nPositions == 1: #beginning fixation
         #if trialCount >= 4 and trialCount % nPositions == 1:
             #win.saveMovieFrames(name) #for saving the exp trial -> saves all frames 
-        
         #create catchlist for the following block
         fixStart  = clock.getTime() #start tracking time trialCount =30
+        
+        if trialCount != 1:
+            toSave2 = str(fixEnd) + ',' + str((fixStart-fixEnd)) + ',' +str(trial['condName']) + '\n'
+            eventfile.write(toSave2) 
+            
+            
         win.flip()
         stim1=[]
         stim2=[]
@@ -523,8 +446,12 @@ for trial in trialsReady:
                     x=2
         for nFrames in range(60):  #last second of fixation start flipping, to prevent frame drops later on
             win.flip()            
+        fixEnd = clock.getTime()
         toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,None,fix start: '+str(fixStart)+',fix dur: '+ str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ',None,None,None,None,None,None,None,None,None\n'
         logfile.write(toSave)
+        toSave2 = str(fixStart) + ',' + str((fixEnd-fixStart)) + ',fixation\n'
+        eventfile.write(toSave2)
+        
         print('fixation, dur: ' + str(round((timeFix)*1000)+1000) + ',load dur: ' + str(round(loadTime*1000)) + ' ms')       
         # name = (dataPath + str(trial['condName']) +'_'+ str(trial['maskType'])+'.png')#for saving the exp trial -> save name of frames 
 
@@ -574,6 +501,7 @@ for trial in trialsReady:
           ', trial time: ', round((endTrial-startTrial)*1000), 'ms')
     toSave = str(trial['blockNr'])+','+str(trial['posInRun'])+','+str(trial['posInBlock'])+','+str(trial['trialNr']) +','+ str(trial['condName']) +','+ str(trial['maskType'])+','+ str(startTrial)+','+ str(trialDuration) +','+ str(round(stimDur*1000)) +','+ str(round(maskDur*1000)) +','+ str(trial['stimFrames']) +','+ str(trial['imageName']) +','+ str(trial['maskName']) +','+ str(trial['backFrame'])+','+ str(int(trial['catchTrial']))+','+str(last_response)+','+str(response_time)+','+str(reactionTime)+'\n' 
     logfile.write(toSave)
+    
     if not last_response == '': #empry responses if it's already logged
         esc() # in case we need to shut down the expt
         last_response = ''; response_time = ''; reactionTime = '';
@@ -590,6 +518,8 @@ fixNow = clock.getTime()
 timeFix = fixNow-fixStart 
 toSave = str(int(trial['blockNr'])) + ',' + str(trial['posInRun']) +',0,0,'+ 'fixation,None,fix start: '+str(fixStart)+',fix dur: '+ str(round(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
 logfile.write(toSave)
+toSave2 = str(fixStart) + ',' + str(timeFix) + ',fixation\n'
+eventfile.write(toSave2)
 
 #final face chackerboard, then background checkerboard    
 for checks in range(2): #checks=1 is face checks=0 is background
@@ -616,7 +546,8 @@ for checks in range(2): #checks=1 is face checks=0 is background
        
     toSave = checkName + ',3Hz aka 6Hz,0,0,'+ 'checkerboard,None,checker start: '+str(checkerTimeStart)+',checker dur: '+ str(round(checkerTimeTotal)*1000) + ',None,'+str(checkerboards[[checks][0]][1][-19:])+','+str(checkerboards[[checks][0]][0][-19:])+',None,None,None,None,None\n'
     logfile.write(toSave)
-
+    toSave2 = str(checkerTimeStart) + ',' + str(checkerTimeTotal) + ',' + str(checkerboards[[checks][0]][1][-19:]) + '\n'
+    eventfile.write(toSave2)
 
 #finalfixationnnn
 fixStart = clock.getTime()
@@ -626,6 +557,8 @@ fixNow = clock.getTime()
 timeFix = fixNow-fixStart 
 toSave = 'EndFixatione,final,0,0,'+ 'fixation,fix start: '+str(fixStart)+',fix dur: '+ str(round(timeFix)*1000) + ',None,None,None,None,None,None,None,None,None,None\n'
 logfile.write(toSave)
+toSave2 = str(fixStart) + ',' + str(timeFix) + ',fixation\n'
+eventfile.write(toSave2)
     
 fix1.setAutoDraw(False)
 fix2.setAutoDraw(False)
@@ -636,16 +569,17 @@ percCorr = (100/totalCatch)*corrResp
 toSave = 'Total run duration: ' + str(totExpDur) + '\nPercentage correct = ' + str(percCorr)
 logfile.write(toSave)
 
-instruc03 = 'This is the end of run ' + str(expInfo['2. Run number']) + ' out of 11\n\nYou have a score of ' + str(round(percCorr)) + '%\nThank you for paying attention :)\n\nPress \'x\' to close the screen.'
+instruc03 = 'This is the end of run ' + str(runNr) + ' out of 11\n\nYou have a score of ' + str(round(percCorr)) + '%\nThank you for paying attention :)\n\nPress \'x\' to close the screen.'
 instruc03 = visual.TextStim(win, color='black',height=32,text=instruc03)
 instruc03.draw()
 win.flip()
 while not 'x' in event.getKeys():
     core.wait(0.1)
 
-print('time exp: ', int(clock))
+print('time exp: ', int(clock.getTime()))
   
 logfile.close()
+eventfile.close()
 win.close()
 
 
