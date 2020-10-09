@@ -214,7 +214,7 @@ blockCount = [x+(runNr-1) for x in blockCount]
 for blockNr in runSeq: #loop through blocks in specific run
     stimSeqNr = int(blockNr+(blockCount[blockNr])) #i.e. block 1 starts with stim sequence 1
     if stimSeqNr > 19: # there are only 20 sequences (0-19)..  
-        stimSeqNr = int(stimSeqNr - 20) #so when an index is above 19.. start over from start (0)
+        stimSeqNr = int(stimSeqNr - 24) #so when an index is above 19.. start over from start (0)
     trials = stimSeq[stimSeqNr] #get specific stim order for this block
     trialNumber = 0
     #select the correct back frame -> backSeq[block][run]
